@@ -4,12 +4,13 @@
   "description": "Engine to parse input file and handle templates.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/.bin/jest lib/",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "build": "npm run build:types && npm run build:js",
+    "build": "npm run build:types && npm run build:js && npm run build:copygrammarfile",
     "build:types": "tsc --emitDeclarationOnly",
-    "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline"
+    "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
+    "build:copygrammarfile": "cp src/parsing/*.pegjs lib/parsing"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
     "@babel/preset-typescript": "^7.10.1",
     "@types/node": "^14.0.13",
     "@types/pegjs": "^0.10.2",
+    "@types/jest": "^26.0.0",
     "typescript": "^3.9.5",
     "jest": "^26.0.1"
   }
