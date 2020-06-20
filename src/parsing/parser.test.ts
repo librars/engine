@@ -1,5 +1,10 @@
 import {} from "jest";
 
-test("two plus two is four", () => {
-    expect(2 + 2).toBe(4);
+import { MDParser } from "./parser";
+
+const parser = new MDParser();
+
+test("Parse empty string", () => {
+    const ast = parser.parse("");
+    expect(ast).toBe("");
 });

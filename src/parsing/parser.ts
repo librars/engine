@@ -1,6 +1,7 @@
 /** Andrea Tino - 2020 */
 
 import { readFileSync } from "fs"
+import { join } from "path"
 import { generate, Parser } from "pegjs";
 
 /**
@@ -10,7 +11,8 @@ export class MDParser {
     private generatedParser: Parser;
 
     constructor() {
-        this.generatedParser = generate(readFileSync("grammar.pegjs").toString(), {
+        const grammarfile = join(__dirname, "grammar.pegjs");
+        this.generatedParser = generate(readFileSync(grammarfile).toString(), {
             trace: true
         })
     }
@@ -19,7 +21,7 @@ export class MDParser {
      * Parses a string.
      * @param input String to parse.
      */
-    public parse(input: string): void {
-        let ast = this.generatedParser.parse(input);
+    public parse(input: string): any {
+        return this.generatedParser.parse(input);
     }
 }
