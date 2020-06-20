@@ -20,8 +20,11 @@ start
   - Directive
 */
 blockflow
-  = block _n _n blockflow
-  / _e
+  = head:block tail:(N N block { return "bb"; })*
+    {
+      return `b${tail.length}`;
+    }
+
 block
   = paragraph
   / heading
@@ -37,20 +40,55 @@ block
 paragraph
   = textstream
 
+/* Heading */
+heading
+  = textstream
+
+/* Lists */
+list
+  = textstream
+
+/* Code block */
+code
+  = textstream
+
+/* Quotation */
+quote
+  = textstream
+
+/* Environments */
+env
+  = textstream
+
+/* Media reference */
+media
+  = textstream
+
+/* Variable declaration */
+var
+  = textstream
+
+/* Directive */
+dir
+  = textstream
+
 /*
 A text stream can be text plus other inline elements.
 */
 textstream
-  = t textstream
-t
   = text
   / inline
+
+inline
+  = _
+
+/* ----- Terminals and character classes ----- */
 
 text
   = [a-zA-Z0-9 \t]+
 
-_ "whitespace" = [ \t]*
+S "whitespace" = [ \t]*
 
-_n "newline" = [\n\r]
+N "newline" = [\n\r]
 
-_e "null" = ""
+_ "empty" = ""

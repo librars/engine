@@ -13,7 +13,7 @@ export class MDParser {
     constructor() {
         const grammarfile = join(__dirname, "grammar.pegjs");
         this.generatedParser = generate(readFileSync(grammarfile).toString(), {
-            trace: true
+            trace: false
         })
     }
 
