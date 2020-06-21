@@ -2,9 +2,9 @@ import {} from "jest";
 
 import { MDParser } from "./parser";
 
-const parser = new MDParser();
+const parser = new MDParser({ trace: true });
 
 test("Parse empty string", () => {
-    const ast = parser.parse("");
-    expect(ast).toBe("");
+    const _ = () => { parser.parse(""); };
+    expect(_).toThrow();
 });
