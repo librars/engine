@@ -1,9 +1,15 @@
 // Andrea Tino - 2020
 
 {
-  const STYLE = {
+  const TEXTSTYLE = {
     CURSIVE: 0,
     BOLD: 1
+  };
+
+  const LISTITEMTYPE = {
+    BULLET: 0,
+    NUMERIC_AUTO: 1,
+    NUMERIC_MANUAL: 2
   };
 }
 
@@ -53,23 +59,65 @@ block
 
 /* A paragraph is just a text stream */
 paragraph
-  = textstream
+  = s:textstream { return s; }
 
-/* Heading */
+/* 
+  Heading
+  Comprises the heading itself followed by a paragraph.
+*/
 heading
-  = textstream
+  = s:SHARP+ S* t:TEXT S* N+ p:paragraph
+    {
+      // Compute the heading level by counting the number of sharps
+      const level = s.length;
 
-/* Lists */
+      return {
+        t: "HEADING",
+        v: {
+          level: level,
+          title: t,
+          paragraph: p
+        }
+      };
+    }
+
+/*
+  Lists
+  Different types supported:
+  - Bulleted list
+  - Numbered lists
+      - Automatic numbering
+      - Manual numbering
+*/
 list
-  = textstream
+  = l:(ind:S*
+       sign:(MINUS { return LISTITEMTYPE.BULLET; } /
+             PLUS { return LISTITEMTYPE.NUMERIC_AUTO; } /
+             (NUMERIC DOT) { return LISTITEMTYPE.NUMERIC_MANUAL; })
+       S*
+       t:TEXT
+       N { return { t: "LISTITEM", v: { indentation: ind.length, type: sign, text: t } }; })+
+    {
+      return { t: "LIST", v: l };
+    }
 
 /* Code block */
 code
-  = textstream
+  = TIK TIK TIK N c:.* N TIK TIK TIK { return { t: "CODEBLOCK", v: { text: c, lang: "undefined" } }; }
 
 /* Quotation */
 quote
-  = textstream
+  = head:quoteline tail:(N quoteline)*
+    {
+      if (tail.length === 0) {
+        return [head];
+      }
+
+      return [head].concat(tail);
+    }
+
+quoteline
+  = ABC S* t:TEXT { return { t: "QUOTELINE", v: t }; }
 
 /* Environments */
 env
@@ -77,19 +125,42 @@ env
 
 /* Media reference */
 media
-  = textstream
+  = BANG SBO t:TEXT SBC CBO u:url CBC { return { t: "MEDIA", v: { text: t, url: u } }; }
 
-/* Variable declaration */
+/* Variable declaration(s) */
 var
-  = textstream
+  = head:varline tail:(N varline)*
+    {
+      if (tail.length === 0) {
+        return [head];
+      }
 
-/* Directive */
+      return [head].concat(tail);
+    }
+
+varline
+  = SEMICOL SBO id:identifier SBC CBO t:TEXT CBC { return { t: "VARIABLEDECLARATION", v: { identifier: id, value: t } }; }
+
+/* Directive(s) */
 dir
-  = textstream
+  = head:dirline tail:(N dirline)*
+    {
+      if (tail.length === 0) {
+        return [head];
+      }
+
+      return [head].concat(tail);
+    }
+
+dirline
+  = d:incdirline { return d; }
+
+incdirline
+  = PERC DIR_INCLUDE S+ QUOTEMARK p:path QUOTEMARK { return { t: "DIRINCLUDE", v: { path: p } }; }
 
 /* Equation block */
 eq
-  = textstream
+  = DOLLAR DOLLAR N t:.* N DOLLAR DOLLAR { t: "EQUATION", v: { text: t, lang: "latex" } }
 
 /*
 A text stream can be text plus other inline elements.
@@ -103,13 +174,13 @@ plaintext
 /* ----- Inline constructs ----- */
 
 /*
-An inline element can be:
-- Inline formatting (bold, italic)
-- Link
-- Inline code chunk
-- Inline equation
-- Footnote
-- Text reference and label
+  An inline element can be:
+  - Inline formatting (bold, italic)
+  - Link
+  - Inline code chunk
+  - Inline equation
+  - Footnote
+  - Text reference and label
 */
 inline
   = f:formatting { return { t: "FORMAT:INLINE", v: f }; }
@@ -122,10 +193,10 @@ inline
 
 /* Formatting */
 formatting
-  = STAR t:TEXT STAR { return { t: "TEXT", v: { text: t, style: STYLE.CURSIVE } }; }
-  / UNDER t:TEXT UNDER { return { t: "TEXT", v: { text: t, style: STYLE.CURSIVE } }; }
-  / STAR STAR t:TEXT STAR STAR { return { t: "TEXT", v: { text: t, style: STYLE.BOLD } }; }
-  / UNDER UNDER t:TEXT UNDER UNDER { return { t: "TEXT", v: { text: t, style: STYLE.BOLD } }; }
+  = STAR t:TEXT STAR { return { t: "TEXT", v: { text: t, style: TEXTSTYLE.CURSIVE } }; }
+  / UNDER t:TEXT UNDER { return { t: "TEXT", v: { text: t, style: TEXTSTYLE.CURSIVE } }; }
+  / STAR STAR t:TEXT STAR STAR { return { t: "TEXT", v: { text: t, style: TEXTSTYLE.BOLD } }; }
+  / UNDER UNDER t:TEXT UNDER UNDER { return { t: "TEXT", v: { text: t, style: TEXTSTYLE.BOLD } }; }
 
 /* Links */
 link
@@ -133,7 +204,7 @@ link
 
 /* Code (inline) */
 codeline
-  = TIK t:TEXT TIK { return { t: "CODELINE", v: t }; }
+  = TIK t:TEXT TIK { return { t: "CODELINE", v: { text: t, lang: "undefined" } }; }
 
 /* Equation (inline) */
 eqline
@@ -166,9 +237,14 @@ identifier
 url
   = ("http://" / "https://") [a-zA-Z0-9]+
 
+path
+  = [a-zA-Z0-9]+
+
 /* ----- Terminals and character classes ----- */
 
 TEXT = [a-zA-Z0-9 \t]+
+
+NUMERIC = [0-9]+
 
 S "whitespace" = [ \t]*
 
@@ -179,15 +255,22 @@ _ "empty" = ""
 STAR        "asterisk"              = "*"
 TILDE       "tilde"                 = "~"
 UNDER       "underscore"            = "_"
-BANK        "exclamation mark"      = "!"
+BANG        "exclamation mark"      = "!"
 AT          "commercial at"         = "@"
-SQUARE      "sharp"                 = "#"
+SHARP       "sharp"                 = "#"
 DOLLAR      "dollar"                = "$"
 PERC        "percentage"            = "%"
 SEMICOL     "semicolon"             = ":"
+DOT         "dot"                   = "."
 TIK         "backtick"              = "`"
 APEX        "apex"                  = "^"
+MINUS       "minus sign"            = "-"
+plus        "plus sign"             = "+"
 CBO         "circle bracket open"   = "("
 CBC         "circle bracket close"  = ")"
 SBO         "square bracket open"   = "["
 SBC         "square bracket close"  = "]"
+ABC         "angular bracket close" = ">"
+QUOTEMARK   "quotation mark"        = "\""
+
+DIR_INCLUDE "include" = "include"
