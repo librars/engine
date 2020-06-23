@@ -103,7 +103,7 @@ list
 
 /* Code block */
 code
-  = TIK TIK TIK N c:.* N TIK TIK TIK { return { t: "CODEBLOCK", v: { text: c, lang: "undefined" } }; }
+  = TIK TIK TIK N c:TEXT N TIK TIK TIK { return { t: "CODEBLOCK", v: { text: c, lang: "undefined" } }; }
 
 /* Quotation */
 quote
@@ -160,7 +160,7 @@ incdirline
 
 /* Equation block */
 eq
-  = DOLLAR DOLLAR N t:.* N DOLLAR DOLLAR { t: "EQUATION", v: { text: t, lang: "latex" } }
+  = DOLLAR DOLLAR N l:TEXT N DOLLAR DOLLAR { return { t: "EQUATION", v: { text: l, lang: "latex" } }; }
 
 /*
 A text stream can be text plus other inline elements.
@@ -169,7 +169,7 @@ textstream
   = t:(plaintext / inline)+ { return t; }
 
 plaintext
-  = t: TEXT { return { t: "TEXT:INLINE", v: t }; }
+  = t:TEXT { return { t: "TEXT:INLINE", v: t }; }
 
 /* ----- Inline constructs ----- */
 
@@ -230,6 +230,8 @@ ref
       return { t: "REFERENCE", v: id };
     }
 
+/* ----- Generic classes ----- */
+
 /* Identifier */
 identifier
   = [a-zA-Z] [a-zA-Z0-9]*
@@ -242,11 +244,12 @@ path
 
 /* ----- Terminals and character classes ----- */
 
+/* Chunk of text */
 TEXT = [a-zA-Z0-9 \t]+
 
 NUMERIC = [0-9]+
 
-S "whitespace" = [ \t]*
+S "whitespace" = [ \t]
 
 N "newline" = [\n\r]
 
@@ -265,7 +268,7 @@ DOT         "dot"                   = "."
 TIK         "backtick"              = "`"
 APEX        "apex"                  = "^"
 MINUS       "minus sign"            = "-"
-plus        "plus sign"             = "+"
+PLUS        "plus sign"             = "+"
 CBO         "circle bracket open"   = "("
 CBC         "circle bracket close"  = ")"
 SBO         "square bracket open"   = "["
