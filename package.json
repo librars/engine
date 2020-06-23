@@ -8,10 +8,10 @@
     "test:js": "./node_modules/.bin/jest lib/",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "build": "npm run build:types && npm run build:js && npm run build:copygrammarfile",
+    "build": "npm run build:types && npm run build:js && npm run generate:parser",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
-    "build:copygrammarfile": "cp src/parsing/*.pegjs lib/parsing"
+    "generate:parser": "./node_modules/.bin/pegjs -o lib/parsing/generated_parser.js src/parsing/grammar.pegjs"
   },
   "repository": {
     "type": "git",
