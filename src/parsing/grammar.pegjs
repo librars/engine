@@ -18,7 +18,7 @@
   1. Block: the most basic concept in the language. 
 */
 start
-  = bf:blockflow { return bf; }
+  = bf:blockflow { return { t: "ROOT", v: bf }; }
 
 /* ----- Block constructs ----- */
 
@@ -121,7 +121,7 @@ quoteline
 
 /* Environments */
 env
-  = textstream
+  = textstream // TODO
 
 /* Media reference */
 media
@@ -169,7 +169,7 @@ textstream
   = t:(plaintext / inline)+ { return t; }
 
 plaintext
-  = t:TEXT { return { t: "TEXT:INLINE", v: t }; }
+  = t:TEXT { return { t: "TEXT:INLINE", v: t.reduce((a, b) => a + b) }; }
 
 /* ----- Inline constructs ----- */
 
@@ -245,9 +245,9 @@ path
 /* ----- Terminals and character classes ----- */
 
 /* Chunk of text */
-TEXT = [a-zA-Z0-9 \t]+
+TEXT "text" = [a-zA-Z0-9 \t]+
 
-NUMERIC = [0-9]+
+NUMERIC "numeric" = [0-9]+
 
 S "whitespace" = [ \t]
 
