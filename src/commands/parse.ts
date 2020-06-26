@@ -4,9 +4,20 @@ import path from "path";
 import os from "os"
 import yargs from "yargs";
 import process from "child_process"
+import fs from "fs";
 
 import { Command } from "./command";
 import { getAppDataDirPath } from "../utils";
+import { Session } from "../session";
+import { MDParser } from "../parsing/parser";
+import { Generator } from "../parsing/generator";
+import { Formatter } from "../parsing/formatter";
+import { ODTFormatter } from "../parsing/odt_formatter";
+
+/**
+ * Output format.
+ */
+export type OutputFormat = "pdf" | "html";
 
 /**
  * Describe a "parse" command.
@@ -20,20 +31,43 @@ export class ParseCommand implements Command {
      */
     constructor(
         private filePath: string,
+        private format: OutputFormat,
         private pandocPath: string,
         private intermediateFolder: string
     ) {
         if (!filePath) throw new Error("Parameter 'filePath' required");
         if (!pandocPath) throw new Error("Parameter 'pandocPath' required");
-        if (!intermediateFolder) throw new Error("Parameter 'intermediateFolder' required");
+
+        format = format || "pdf";
     }
 
     /** @inheritdoc */
     public execute(): void {
         // Prepare session
-        // Run parser and generate output file
+        const session = new Session({
+            dirpath: this.intermediateFolder
+        });
+
+        // Run parser and generator and generate output file
+        const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
+        const formatter: Formatter = new ODTFormatter();
+        const output = new Generator(formatter).generate(
+            new MDParser().parse(input)
+        );
+        const outputFileName = "output.odt";
+        session.addFile(outputFileName, output);
+
         // Run Pandoc
-        process.execFileSync(this.filePath, {});
+        const generatedFileName = `generated_output.${ParseCommand.outputFormat2Ext(this.format)}`;
+        process.execFileSync(this.pandocPath, [
+            session.getFilePath(outputFileName),
+            "--from", formatter.formatId,
+            "--to", this.format,
+            "--output", generatedFileName
+        ]);
+
+        // Destroy session
+        session.dispose();
     }
 
     /**
@@ -45,12 +79,16 @@ export class ParseCommand implements Command {
                 alias: "p",
                 default: ParseCommand.getDefaultPandocPath()
             }).option("intermediate-folder", {
-                alias: "f",
+                alias: "i",
                 default: ParseCommand.getDefaultIntermediateFolder()
+            }).option("format", {
+                alias: "f",
+                default: "pdf"
             });
         }, argv => {
             new ParseCommand(
                 <string>argv["file"],
+                <OutputFormat>argv["format"],
                 argv["pandoc-path"],
                 argv["intermediate-folder"]
             ).execute();
@@ -68,5 +106,14 @@ export class ParseCommand implements Command {
 
     private static getDefaultIntermediateFolder(): string {
         return getAppDataDirPath();
+    }
+
+    private static outputFormat2Ext(format: OutputFormat): string {
+        switch (format) {
+            case "pdf":
+                return "pdf";
+            case "html":
+                return "html";
+        }
     }
 }

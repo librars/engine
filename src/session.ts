@@ -2,6 +2,7 @@
 
 import uuid from "uuid";
 import path from "path";
+import fs from "fs";
 
 import { Disposable } from "./disposable";
 import { APP_DIR } from "./consts";
@@ -17,6 +18,12 @@ export interface SessionConfig {
      * removed upon session disposal.
      */
     cleanSessionDir?: boolean;
+
+    /**
+     * Explicit path where to create the session directory.
+     * The sesison directory will be created inside the provided path.
+     */
+    dirpath?: string;
 };
 
 /**
@@ -43,16 +50,44 @@ export class Session implements Disposable {
         return this._id;
     }
 
+    /** Gets the path to the session directory. */
+    public get sessionDirPath(): string {
+        const sessionDir = path.join(APP_DIR, this._id);
+        return path.join(<string>this.config.dirpath, sessionDir);
+    }
+
+    /**
+     * Writes a file in the session directory.
+     * @param {string} fileName The name to give to the file.
+     * @param {string} content The content of the file.
+     */
+    public addFile(fileName: string, content: string): void {
+        const filePath = path.join(this.sessionDirPath, fileName);
+        if (!fs.existsSync(filePath)) {
+            throw new Error(`File '${filePath}' already exists`);
+        }
+
+        fs.writeFileSync(filePath, content, { encoding: "utf-8" });
+    }
+
+    /**
+     * Gets the file path in the session directory.
+     * @param {string} fileName The name to give to the file.
+     */
+    public getFilePath(fileName: string): string {
+        const filePath = path.join(this.sessionDirPath, fileName);
+        if (fs.existsSync(filePath)) {
+            return filePath;
+        }
+
+        throw new Error(`File '${filePath}' not found`);
+    }
+
     /** @inheritdoc */
     public dispose(): void {
         if (this.config.cleanSessionDir) {
-            deleteDirectory(this.getSessionDirPath());
+            deleteDirectory(this.sessionDirPath);
         }
-    }
-
-    private getSessionDirPath(): string {
-        const sessionDir = path.join(APP_DIR, this._id);
-        return path.join(getAppDataDirPath(), sessionDir);
     }
 
     private initialize(): void {
@@ -60,12 +95,13 @@ export class Session implements Disposable {
         this._id = uuid.v4();
 
         // Create session directory
-        ensureDirectory(this.getSessionDirPath());
+        ensureDirectory(this.sessionDirPath);
     }
 
     private static getConfigWithDefaults(config: SessionConfig): SessionConfig {
         return {
-            cleanSessionDir: config.cleanSessionDir == undefined ? true : config.cleanSessionDir
+            cleanSessionDir: config.cleanSessionDir == undefined ? true : config.cleanSessionDir,
+            dirpath: config.dirpath || getAppDataDirPath()
         };
     }
 }
