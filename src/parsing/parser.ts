@@ -2,6 +2,9 @@
 
 import { MDNodeType } from "./ast_types";
 
+/**
+ * Describes a node in the AST.
+ */
 export interface MDNode {
     t: MDNodeType,
     v: MDNode | Array<MDNode> | string | Array<string>

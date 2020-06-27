@@ -1,5 +1,7 @@
 /** Andrea Tino - 2020 */
 
+import { FormatNode } from "./format_node";
+
 /**
  * Describes a formatter for the output generation.
  */
@@ -8,5 +10,5 @@ export interface Formatter {
     formatId: string;
 
     /** Generates the root. */
-    generateRoot(): string;
+    generateRoot(): FormatNode;
 }

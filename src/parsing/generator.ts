@@ -20,9 +20,15 @@ export class Generator {
 
     /**
      * Generates the output from the AST.
+     * 
+     * In the first stage, the AST is converted into a tree of FormatNode(s).
+     * Later on, the string coversion is recursively called on that tree producing
+     * the final output.
      * @param {MDNode} ast The AST emitted by the parser.
      */
     public generate(ast: MDNode): string {
+        const ft = null; // The format tree root
+
         return "";
     }
 }
