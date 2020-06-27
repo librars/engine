@@ -1,8 +1,8 @@
 /** Andrea Tino - 2020 */
 
 import { Formatter } from "./formatter";
-import { FormatNode, EmptyFormatNode } from "./format_node";
-import { RootFormatNode } from "./odt_format_nodes";
+import { FormatNode } from "./format_node";
+import { ODTRootFormatNode } from "./odt_format_nodes";
 
 /**
  * A formatter to output ODT format.
@@ -14,7 +14,7 @@ export class ODTFormatter implements Formatter {
     }
 
     /** @inheritdoc */
-    public generateRoot(): FormatNode {
-        return new RootFormatNode(new EmptyFormatNode());
+    public generateRoot(content: FormatNode): FormatNode {
+        return new ODTRootFormatNode(content);
     }
 }

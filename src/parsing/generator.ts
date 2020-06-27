@@ -2,6 +2,7 @@
 
 import { Formatter } from "./formatter";
 import { MDNode } from "./parser";
+import { FormatNode } from "./format_node";
 
 /**
  * Describes a generator to convert an AST into the output format.
@@ -27,8 +28,19 @@ export class Generator {
      * @param {MDNode} ast The AST emitted by the parser.
      */
     public generate(ast: MDNode): string {
-        const ft = null; // The format tree root
+        // Recursively create the format tree
+        const formatTree = this.generateTree(ast);
 
-        return "";
+        // Generate the output
+        return formatTree.toString();
+    }
+
+    private generateTree(ast: MDNode): FormatNode {
+        switch (ast.t) {
+            case "ROOT":
+                return this.formatter.generateRoot(this.generateTree(<MDNode>ast.v));
+        }
+
+        throw new Error(`Error mapping AST node type '${ast.t}', cannot find a proper format node`);
     }
 }

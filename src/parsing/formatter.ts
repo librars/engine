@@ -10,5 +10,5 @@ export interface Formatter {
     formatId: string;
 
     /** Generates the root. */
-    generateRoot(): FormatNode;
+    generateRoot(...input: Array<FormatNode>): FormatNode;
 }

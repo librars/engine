@@ -5,7 +5,7 @@ import { FormatNode } from "./format_node";
 /**
  * Describes the ODT root.
  */
-export class RootFormatNode extends FormatNode {
+export class ODTRootFormatNode extends FormatNode {
     private static BEFORE_CHUNK_K: string = "before_chunk_k";
     private static AFTER_CHUNK_K: string = "after_chunk_k";
     private static CONTENT_PLACEHOLDER_K: string = "content_placeholder_k";
@@ -25,10 +25,10 @@ export class RootFormatNode extends FormatNode {
 
     /** @inheritdoc */
     public toString(): string {
-        const before = this.chuncks[RootFormatNode.BEFORE_CHUNK_K];
-        const after = this.chuncks[RootFormatNode.AFTER_CHUNK_K];
+        const before = this.chuncks[ODTRootFormatNode.BEFORE_CHUNK_K];
+        const after = this.chuncks[ODTRootFormatNode.AFTER_CHUNK_K];
 
-        const content = this.placeholders[RootFormatNode.CONTENT_PLACEHOLDER_K].toString();
+        const content = this.placeholders[ODTRootFormatNode.CONTENT_PLACEHOLDER_K].toString();
 
         return `${before}${content}${after}`;
     }
