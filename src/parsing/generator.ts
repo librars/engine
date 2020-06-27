@@ -29,16 +29,17 @@ export class Generator {
      */
     public generate(ast: MDNode): string {
         // Recursively create the format tree
-        const formatTree = this.generateTree(ast);
+        const formatTree = this.generateFormatTreeNode(ast);
 
         // Generate the output
         return formatTree.toString();
     }
 
-    private generateTree(ast: MDNode): FormatNode {
+    private generateFormatTreeNode(ast: MDNode): FormatNode {
+        // Run through all possible node types and use the corresponding format function
         switch (ast.t) {
             case "ROOT":
-                return this.formatter.generateRoot(this.generateTree(<MDNode>ast.v));
+                return this.formatter.generateRoot(this.generateFormatTreeNode(<MDNode>ast.v));
         }
 
         throw new Error(`Error mapping AST node type '${ast.t}', cannot find a proper format node`);

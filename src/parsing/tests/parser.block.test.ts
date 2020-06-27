@@ -1,6 +1,6 @@
 import {} from "jest";
 
-import { MDParser, MDNode } from "./parser";
+import { MDParser, MDNode } from "../parser";
 
 const parser = new MDParser();
 
