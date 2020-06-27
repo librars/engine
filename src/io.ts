@@ -30,7 +30,7 @@ export function deleteDirectory(dirpath: string): void {
     // Depth first recursive deletion
     const deleteFolderRecursive = (d: string) => {
         if (fs.existsSync(d)) {
-            fs.readdirSync(d).forEach((file, index) => {
+            fs.readdirSync(d).forEach((file) => {
                 const curPath = path.join(d, file);
                 if (fs.lstatSync(curPath).isDirectory()) {
                     deleteFolderRecursive(curPath);

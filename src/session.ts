@@ -24,19 +24,20 @@ export interface SessionConfig {
      * The sesison directory will be created inside the provided path.
      */
     dirpath?: string;
-};
+}
 
 /**
  * Describes a session.
  */
 export class Session implements Disposable {
-    private _id: string = "";
+    private _id: string;
     private config: SessionConfig;
 
     /**
      * Initializes a new instance of this class.
      */
     constructor(config?: SessionConfig) {
+        this._id = "";
         this.initialize();
 
         this.config = config || {

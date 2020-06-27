@@ -73,7 +73,7 @@ export class ParseCommand implements Command {
     /**
      * Registers the handler.
      */
-    public static getHandler(): yargs.Argv<{}> {
+    public static getHandler(): yargs.Argv<unknown> {
         return yargs.command("parse <file>", "", y => {
             return y.option("pandoc-path", {
                 alias: "p",

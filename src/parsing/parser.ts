@@ -14,20 +14,18 @@ export interface MDNode {
  * Main parser.
  */
 export class MDParser {
-    private static generatedParserFileName: string = "generated_parser.js";
-
-    constructor() {
-    }
+    private static generatedParserFileName = "generated_parser.js";
 
     /**
      * Parses a string.
      * @param input String to parse.
      */
     public parse(input: string): MDNode {
-        return this.invokeGeneratedParser(input);
+        return <MDNode>this.invokeGeneratedParser(input);
     }
 
-    private invokeGeneratedParser(input: string): any {
+    private invokeGeneratedParser(input: string): unknown {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         return require(`./${MDParser.generatedParserFileName}`).parse(input);
     }
 }

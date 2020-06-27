@@ -6,9 +6,9 @@ import { FormatNode } from "./format_node";
  * Describes the ODT root.
  */
 export class ODTRootFormatNode extends FormatNode {
-    private static BEFORE_CHUNK_K: string = "before_chunk_k";
-    private static AFTER_CHUNK_K: string = "after_chunk_k";
-    private static CONTENT_PLACEHOLDER_K: string = "content_placeholder_k";
+    private static BEFORE_CHUNK_K = "before_chunk_k";
+    private static AFTER_CHUNK_K = "after_chunk_k";
+    private static CONTENT_PLACEHOLDER_K = "content_placeholder_k";
 
     constructor(content: FormatNode) {
         super();

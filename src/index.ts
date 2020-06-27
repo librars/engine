@@ -3,7 +3,7 @@
 import { ParseCommand } from "./commands/parse";
 
 // Register command handlers.
-let args = ParseCommand.getHandler();
+const args = ParseCommand.getHandler();
 
 // Execute
 args.parse();
