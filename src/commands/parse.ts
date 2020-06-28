@@ -26,6 +26,7 @@ export class ParseCommand implements Command {
     /**
      * Initializes a new instance of this class.
      * @param filePath Path to the file to parse.
+     * @param format The output format.
      * @param pandocPath The path to Pandoc executable.
      * @param intermediateFolder The intermediate folder.
      */
@@ -45,8 +46,10 @@ export class ParseCommand implements Command {
     public execute(): void {
         // Prepare session
         const session = new Session({
-            dirpath: this.intermediateFolder
+            dirpath: this.intermediateFolder,
+            cleanSessionDir: false
         });
+        session.logger.info(`Entered command 'parse' - Session: '${session.id}' created.`);
 
         // Run parser and generator and generate output file
         const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
@@ -59,12 +62,21 @@ export class ParseCommand implements Command {
 
         // Run Pandoc
         const generatedFileName = `generated_output.${ParseCommand.outputFormat2Ext(this.format)}`;
+        const generatedFilePath = path.join(session.sessionDirPath, generatedFileName);
         process.execFileSync(this.pandocPath, [
             session.getFilePath(outputFileName),
             "--from", formatter.formatId,
             "--to", this.format,
-            "--output", generatedFileName
+            "--output", generatedFilePath
         ]);
+        session.logger.info(`Parsing completed, output: ${generatedFileName}`);
+
+        // Provide output file to the user
+        const userDstGeneratedOutputFilePath = path.join(__dirname, generatedFileName);
+        fs.copyFileSync(generatedFilePath, userDstGeneratedOutputFilePath);
+        session.logger.info(`Output generation completed - File: '${userDstGeneratedOutputFilePath}'.`);
+
+        session.logger.info(`Command 'parse' completed - Session: '${session.id}' closing.`);
 
         // Destroy session
         session.dispose();
