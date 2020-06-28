@@ -2,7 +2,7 @@
   "name": "librars.engine",
   "version": "1.0.0",
   "description": "Engine to parse input file and handle templates.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "npm run build && npm run test:js",
     "test:js": "./node_modules/.bin/jest lib/",
