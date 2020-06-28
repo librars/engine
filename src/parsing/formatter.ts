@@ -11,4 +11,10 @@ export interface Formatter {
 
     /** Generates the root. */
     generateRoot(...input: Array<FormatNode>): FormatNode;
+
+    /** Generates a literal. */
+    generateLiteral(input: string): FormatNode;
+
+    /** Generates an array. */
+    generateArray(input: Array<FormatNode | string>): FormatNode;
 }

@@ -1,6 +1,6 @@
 /** Andrea Tino - 2020 */
 
-import uuid from "uuid";
+import { v4 as uuid } from "uuid";
 import path from "path";
 import fs from "fs";
 
@@ -49,7 +49,7 @@ export class Session implements Disposable {
         this.config = Session.getConfigWithDefaults(this.config);
 
         // Create an id
-        this._id = uuid.v4();
+        this._id = uuid();
 
         // Instantiate the logger
         this._logger = new Logger();

@@ -1,13 +1,13 @@
 /** Andrea Tino - 2020 */
 
-import { MDNodeType } from "./ast_types";
+import { MDNodeType, MDNodeValue } from "./ast_types";
 
 /**
  * Describes a node in the AST.
  */
 export interface MDNode {
     t: MDNodeType,
-    v: MDNode | Array<MDNode> | string | Array<string>
+    v: MDNodeValue
 }
 
 /**

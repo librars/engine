@@ -2,7 +2,7 @@
 
 import { Formatter } from "./formatter";
 import { FormatNode } from "./format_node";
-import { ODTRootFormatNode } from "./odt_format_nodes";
+import { ODTRootFormatNode, ODTLiteralFormatNode, ODTArrayFormatNode } from "./odt_format_nodes";
 
 /**
  * A formatter to output ODT format.
@@ -16,5 +16,15 @@ export class ODTFormatter implements Formatter {
     /** @inheritdoc */
     public generateRoot(content: FormatNode): FormatNode {
         return new ODTRootFormatNode(content);
+    }
+
+    /** @inheritdoc */
+    public generateLiteral(literal: string): FormatNode {
+        return new ODTLiteralFormatNode(literal);
+    }
+
+    /** @inheritdoc */
+    public generateArray(array: Array<FormatNode | string>): FormatNode {
+        return new ODTArrayFormatNode(array);
     }
 }

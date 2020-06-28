@@ -33,3 +33,50 @@ export class ODTRootFormatNode extends FormatNode {
         return `${before}${content}${after}`;
     }
 }
+
+/**
+ * Describes an ODT literal.
+ */
+export class ODTLiteralFormatNode extends FormatNode {
+    private literal: string;
+
+    constructor(literal: string) {
+        super();
+
+        this.literal = literal;
+    }
+
+    /** @inheritdoc */
+    public toString(): string {
+        return this.literal;
+    }
+}
+
+/**
+ * Describes an ODT array.
+ */
+export class ODTArrayFormatNode extends FormatNode {
+    private array: Array<FormatNode | string>;
+
+    constructor(array: Array<FormatNode | string>) {
+        super();
+
+        this.array = array;
+    }
+
+    /** @inheritdoc */
+    public toString(): string {
+        const result = new Array<string>();
+
+        for (let i = 0; i < this.array.length; i++) {
+            const element = this.array[i];
+            result.push(this.isFormatNode(element) ? element.toString() : element);
+        }
+
+        return result.reduce((a, b) => `${a}\n${b}`);
+    }
+
+    private isFormatNode(element: any): element is FormatNode { // eslint-disable-line @typescript-eslint/no-explicit-any
+        return "toString" in element;
+    }
+}

@@ -3,6 +3,7 @@
 import { Formatter } from "./formatter";
 import { MDNode } from "./parser";
 import { FormatNode } from "./format_node";
+import { MDNodeValue, isMDNodeValueOfTypeNode, isMDNodeValueOfTypeString, isMDNodeValueOfTypeNodeArray, isMDNodeValueOfTypeStringArray } from "./ast_types";
 
 /**
  * Describes a generator to convert an AST into the output format.
@@ -35,13 +36,41 @@ export class Generator {
         return formatTree.toString();
     }
 
-    private generateFormatTreeNode(ast: MDNode): FormatNode {
+    private generateFormatTreeNode(ast: MDNodeValue): FormatNode {
         // Run through all possible node types and use the corresponding format function
-        switch (ast.t) {
-            case "ROOT":
-                return this.formatter.generateRoot(this.generateFormatTreeNode(<MDNode>ast.v));
+
+        if (isMDNodeValueOfTypeNode(ast)) {
+            switch (ast.t) {
+                case "ROOT":
+                    return this.formatter.generateRoot(this.generateFormatTreeNode(ast.v));
+            }
+
+            throw new Error(`Error mapping AST node of type '${ast.t}', cannot find a proper format node. 
+                AST node was: '${JSON.stringify(ast)}'`);
         }
 
-        throw new Error(`Error mapping AST node type '${ast.t}', cannot find a proper format node`);
+        if (isMDNodeValueOfTypeString(ast)) {
+            return this.formatter.generateLiteral(ast);
+        }
+
+        if (isMDNodeValueOfTypeNodeArray(ast)) {
+            const formatNodeArray = new Array<FormatNode>();
+            for (let i = 0; i < ast.length; i++) {
+                formatNodeArray.push(this.generateFormatTreeNode(ast[i]));
+            }
+
+            return this.formatter.generateArray(formatNodeArray);
+        }
+
+        if (isMDNodeValueOfTypeStringArray(ast)) {
+            const formatNodeArray = new Array<FormatNode>();
+            for (let i = 0; i < ast.length; i++) {
+                formatNodeArray.push(this.formatter.generateLiteral(ast[i]));
+            }
+
+            return this.formatter.generateArray(formatNodeArray);
+        }
+
+        throw new Error(`AST node type not recognized. AST node was: '${JSON.stringify(ast)}'`);
     }
 }
