@@ -1,6 +1,6 @@
 /** Andrea Tino - 2020 */
 
-import { FormatNode } from "./format_node";
+import { FormatNode, isFormatNode } from "./format_node";
 
 /**
  * Describes the ODT root.
@@ -14,12 +14,12 @@ export class ODTRootFormatNode extends FormatNode {
         super();
 
         this.placeholders = {
-            CONTENT_PLACEHOLDER_K: content
+            [ODTRootFormatNode.CONTENT_PLACEHOLDER_K]: content
         };
 
         this.chuncks = {
-            BEFORE_CHUNK_K: "<root>",
-            AFTER_CHUNK_K: "</root>"
+            [ODTRootFormatNode.BEFORE_CHUNK_K]: "<root>",
+            [ODTRootFormatNode.AFTER_CHUNK_K]: "</root>"
         };
     }
 
@@ -38,9 +38,9 @@ export class ODTRootFormatNode extends FormatNode {
  * Describes an ODT literal.
  */
 export class ODTLiteralFormatNode extends FormatNode {
-    private literal: string;
+    private literal: FormatNode | string;
 
-    constructor(literal: string) {
+    constructor(literal: FormatNode | string) {
         super();
 
         this.literal = literal;
@@ -48,6 +48,10 @@ export class ODTLiteralFormatNode extends FormatNode {
 
     /** @inheritdoc */
     public toString(): string {
+        if (isFormatNode(this.literal)) {
+            return this.literal.toString();
+        }
+
         return this.literal;
     }
 }
@@ -70,13 +74,9 @@ export class ODTArrayFormatNode extends FormatNode {
 
         for (let i = 0; i < this.array.length; i++) {
             const element = this.array[i];
-            result.push(this.isFormatNode(element) ? element.toString() : element);
+            result.push(isFormatNode(element) ? element.toString() : element);
         }
 
         return result.reduce((a, b) => `${a}\n${b}`);
-    }
-
-    private isFormatNode(element: any): element is FormatNode { // eslint-disable-line @typescript-eslint/no-explicit-any
-        return "toString" in element;
     }
 }

@@ -31,6 +31,14 @@ export abstract class FormatNode {
 }
 
 /**
+ * Type guard.
+ * @param element The element to check.
+ */
+export function isFormatNode(element: any): element is FormatNode { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+    return typeof(element) === "object" && "toString" in element;
+}
+
+/**
  * Describes a format node producing an empty string
  */
 export class EmptyFormatNode extends FormatNode {

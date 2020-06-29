@@ -5,7 +5,10 @@ import { MDNode } from "./parser";
 /**
  * Represents the type of a node type.
  */
-export type MDNodeType = "ROOT" | "TEXT:INLINE" | "PARAGRAPH:BLOCK";
+export type MDNodeType = 
+    "ROOT" |
+    "TEXT:INLINE" |
+    "PARAGRAPH:BLOCK";
 
 /**
  * Represents the type of a node value.

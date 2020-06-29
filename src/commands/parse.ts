@@ -7,8 +7,6 @@ import process from "child_process"
 import fs from "fs";
 
 import { Command } from "./command";
-import { getAppDataDirPath } from "../utils";
-import { Session } from "../session";
 import { MDParser } from "../parsing/parser";
 import { Generator } from "../parsing/generator";
 import { Formatter } from "../parsing/formatter";
@@ -22,7 +20,7 @@ export type OutputFormat = "pdf" | "html";
 /**
  * Describe a "parse" command.
  */
-export class ParseCommand implements Command {
+export class ParseCommand extends Command {
     /**
      * Initializes a new instance of this class.
      * @param filePath Path to the file to parse.
@@ -34,8 +32,10 @@ export class ParseCommand implements Command {
         private filePath: string,
         private format: OutputFormat,
         private pandocPath: string,
-        private intermediateFolder: string
+        private intermediateFolder?: string
     ) {
+        super(intermediateFolder);
+
         if (!filePath) throw new Error("Parameter 'filePath' required");
         if (!pandocPath) throw new Error("Parameter 'pandocPath' required");
 
@@ -43,43 +43,40 @@ export class ParseCommand implements Command {
     }
 
     /** @inheritdoc */
-    public execute(): void {
-        // Prepare session
-        const session = new Session({
-            dirpath: this.intermediateFolder,
-            cleanSessionDir: false
-        });
-        session.logger.info(`Entered command 'parse' - Session: '${session.id}' created.`);
+    protected executeCore(): void {
+        this.session.logger.info(`Entered command 'parse' - Session: '${this.session.id}' created.`);
 
         // Run parser and generator and generate output file
         const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
         const formatter: Formatter = new ODTFormatter();
-        const output = new Generator(formatter).generate(
+        const output = new Generator(formatter, this.session.logger).generate(
             new MDParser().parse(input)
         );
         const outputFileName = "output.odt";
-        session.addFile(outputFileName, output);
+        this.session.addFile(outputFileName, output);
 
         // Run Pandoc
         const generatedFileName = `generated_output.${ParseCommand.outputFormat2Ext(this.format)}`;
-        const generatedFilePath = path.join(session.sessionDirPath, generatedFileName);
+        const generatedFilePath = path.join(this.session.sessionDirPath, generatedFileName);
         process.execFileSync(this.pandocPath, [
-            session.getFilePath(outputFileName),
+            this.session.getFilePath(outputFileName),
             "--from", formatter.formatId,
             "--to", this.format,
             "--output", generatedFilePath
         ]);
-        session.logger.info(`Parsing completed, output: ${generatedFileName}`);
+        this.session.logger.info(`Parsing completed, output: ${generatedFileName}`);
 
         // Provide output file to the user
         const userDstGeneratedOutputFilePath = path.join(__dirname, generatedFileName);
         fs.copyFileSync(generatedFilePath, userDstGeneratedOutputFilePath);
-        session.logger.info(`Output generation completed - File: '${userDstGeneratedOutputFilePath}'.`);
+        this.session.logger.info(`Output generation completed - File: '${userDstGeneratedOutputFilePath}'.`);
 
-        session.logger.info(`Command 'parse' completed - Session: '${session.id}' closing.`);
+        this.session.logger.info(`Command 'parse' completed - Session: '${this.session.id}' closing.`);
+    }
 
-        // Destroy session
-        session.dispose();
+    /** @inheritdoc */
+    protected get commandName(): string {
+        return "Parse";
     }
 
     /**
@@ -92,18 +89,20 @@ export class ParseCommand implements Command {
                 default: ParseCommand.getDefaultPandocPath()
             }).option("intermediate-folder", {
                 alias: "i",
-                default: ParseCommand.getDefaultIntermediateFolder()
+                default: Command.getDefaultIntermediateFolder()
             }).option("format", {
                 alias: "f",
                 default: "pdf"
             });
         }, argv => {
-            new ParseCommand(
+            const command = new ParseCommand(
                 <string>argv["file"],
                 <OutputFormat>argv["format"],
                 argv["pandoc-path"],
                 argv["intermediate-folder"]
-            ).execute();
+            );
+            command.execute();
+            command.dispose();
         });
     }
 
@@ -114,10 +113,6 @@ export class ParseCommand implements Command {
             default:
                 throw new Error("Not supported yet");
         }
-    }
-
-    private static getDefaultIntermediateFolder(): string {
-        return getAppDataDirPath();
     }
 
     private static outputFormat2Ext(format: OutputFormat): string {

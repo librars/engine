@@ -8,7 +8,8 @@ import { Disposable } from "./disposable";
 import { APP_DIR } from "./consts";
 import { getAppDataDirPath } from "./utils";
 import { ensureDirectory, deleteDirectory } from "./io";
-import { Logger } from "./logger";
+import { SystemLogger } from "./logging/system_logger";
+import { Logger } from "./logging/logger";
 
 /**
  * Describes the configuration for a session.
@@ -38,7 +39,8 @@ export interface SessionConfig {
 export class Session implements Disposable {
     private _id: string;
     private config: SessionConfig;
-    private _logger: Logger;
+    private _logger: SystemLogger;
+    private _isDisposed = false;
 
     /**
      * Initializes a new instance of this class.
@@ -51,13 +53,13 @@ export class Session implements Disposable {
         // Create an id
         this._id = uuid();
 
-        // Instantiate the logger
-        this._logger = new Logger();
-
         // Create session directory
         if (this.config.createSessionDir) {
             ensureDirectory(this.sessionDirPath);
         }
+
+        // Instantiate the logger
+        this._logger = new SystemLogger(true, this.config.createSessionDir ? this.sessionDirPath : undefined);
     }
 
     /** Gets the session logger. */
@@ -87,7 +89,7 @@ export class Session implements Disposable {
         this.checkSessionDir();
 
         const filePath = path.join(this.sessionDirPath, fileName);
-        if (!fs.existsSync(filePath)) {
+        if (fs.existsSync(filePath)) {
             throw new Error(`File '${filePath}' already exists`);
         }
 
@@ -111,11 +113,27 @@ export class Session implements Disposable {
 
     /** @inheritdoc */
     public dispose(): void {
+        if (this.isDisposed) {
+            return;
+        }
+
+        // Clean the logger flushing messages
+        // Note: must happen before removing the session dir as log files will be flushed there
+        this._logger.dispose();
+
+        // Clean session directory
         if (this.config.cleanSessionDir) {
             if (fs.existsSync(this.sessionDirPath)) {
                 deleteDirectory(this.sessionDirPath);
             }
         }
+
+        this._isDisposed = true;
+    }
+
+    /** @inheritdoc */
+    public get isDisposed(): boolean {
+        return this._isDisposed;
     }
 
     private checkSessionDir(): void {

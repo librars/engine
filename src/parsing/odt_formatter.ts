@@ -19,6 +19,16 @@ export class ODTFormatter implements Formatter {
     }
 
     /** @inheritdoc */
+    public generateParagraphBlock(...content: Array<FormatNode>): FormatNode {
+        return new ODTArrayFormatNode(content);
+    }
+
+    /** @inheritdoc */
+    public generateTextInline(text: FormatNode): FormatNode {
+        return new ODTLiteralFormatNode(text);
+    }
+
+    /** @inheritdoc */
     public generateLiteral(literal: string): FormatNode {
         return new ODTLiteralFormatNode(literal);
     }
