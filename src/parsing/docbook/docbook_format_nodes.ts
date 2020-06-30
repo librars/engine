@@ -1,11 +1,11 @@
 /** Andrea Tino - 2020 */
 
-import { FormatNode, isFormatNode } from "./format_node";
+import { FormatNode, isFormatNode } from "../format_node";
 
 /**
- * Describes the ODT root.
+ * Describes the DocBook root.
  */
-export class ODTRootFormatNode extends FormatNode {
+export class DocBookRootFormatNode extends FormatNode {
     private static BEFORE_CHUNK_K = "before_chunk_k";
     private static AFTER_CHUNK_K = "after_chunk_k";
     private static CONTENT_PLACEHOLDER_K = "content_placeholder_k";
@@ -14,30 +14,30 @@ export class ODTRootFormatNode extends FormatNode {
         super();
 
         this.placeholders = {
-            [ODTRootFormatNode.CONTENT_PLACEHOLDER_K]: content
+            [DocBookRootFormatNode.CONTENT_PLACEHOLDER_K]: content
         };
 
         this.chuncks = {
-            [ODTRootFormatNode.BEFORE_CHUNK_K]: "<root>",
-            [ODTRootFormatNode.AFTER_CHUNK_K]: "</root>"
+            [DocBookRootFormatNode.BEFORE_CHUNK_K]: "<root>",
+            [DocBookRootFormatNode.AFTER_CHUNK_K]: "</root>"
         };
     }
 
     /** @inheritdoc */
     public toString(): string {
-        const before = this.chuncks[ODTRootFormatNode.BEFORE_CHUNK_K];
-        const after = this.chuncks[ODTRootFormatNode.AFTER_CHUNK_K];
+        const before = this.chuncks[DocBookRootFormatNode.BEFORE_CHUNK_K];
+        const after = this.chuncks[DocBookRootFormatNode.AFTER_CHUNK_K];
 
-        const content = this.placeholders[ODTRootFormatNode.CONTENT_PLACEHOLDER_K].toString();
+        const content = this.placeholders[DocBookRootFormatNode.CONTENT_PLACEHOLDER_K].toString();
 
         return `${before}${content}${after}`;
     }
 }
 
 /**
- * Describes an ODT literal.
+ * Describes an DocBook literal.
  */
-export class ODTLiteralFormatNode extends FormatNode {
+export class DocBookLiteralFormatNode extends FormatNode {
     private literal: FormatNode | string;
 
     constructor(literal: FormatNode | string) {
@@ -57,9 +57,9 @@ export class ODTLiteralFormatNode extends FormatNode {
 }
 
 /**
- * Describes an ODT array.
+ * Describes an DocBook array.
  */
-export class ODTArrayFormatNode extends FormatNode {
+export class DocBookArrayFormatNode extends FormatNode {
     private array: Array<FormatNode | string>;
 
     constructor(array: Array<FormatNode | string>) {

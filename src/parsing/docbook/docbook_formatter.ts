@@ -1,13 +1,13 @@
 /** Andrea Tino - 2020 */
 
-import { Formatter } from "./formatter";
-import { FormatNode } from "./format_node";
-import { ODTRootFormatNode, ODTLiteralFormatNode, ODTArrayFormatNode } from "./odt_format_nodes";
+import { Formatter } from "../formatter";
+import { FormatNode } from "../format_node";
+import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode } from "./docbook_format_nodes";
 
 /**
- * A formatter to output ODT format.
+ * A formatter to output DocBookF format.
  */
-export class ODTFormatter implements Formatter {
+export class DocBookFormatter implements Formatter {
     /** @inheritdoc */
     public get formatId(): string {
         return "odt";
@@ -15,26 +15,26 @@ export class ODTFormatter implements Formatter {
 
     /** @inheritdoc */
     public generateRoot(content: FormatNode): FormatNode {
-        return new ODTRootFormatNode(content);
+        return new DocBookRootFormatNode(content);
     }
 
     /** @inheritdoc */
     public generateParagraphBlock(...content: Array<FormatNode>): FormatNode {
-        return new ODTArrayFormatNode(content);
+        return new DocBookArrayFormatNode(content);
     }
 
     /** @inheritdoc */
     public generateTextInline(text: FormatNode): FormatNode {
-        return new ODTLiteralFormatNode(text);
+        return new DocBookLiteralFormatNode(text);
     }
 
     /** @inheritdoc */
     public generateLiteral(literal: string): FormatNode {
-        return new ODTLiteralFormatNode(literal);
+        return new DocBookLiteralFormatNode(literal);
     }
 
     /** @inheritdoc */
     public generateArray(array: Array<FormatNode | string>): FormatNode {
-        return new ODTArrayFormatNode(array);
+        return new DocBookArrayFormatNode(array);
     }
 }

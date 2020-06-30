@@ -10,7 +10,7 @@ import { Command } from "./command";
 import { MDParser } from "../parsing/parser";
 import { Generator } from "../parsing/generator";
 import { Formatter } from "../parsing/formatter";
-import { ODTFormatter } from "../parsing/odt_formatter";
+import { DocBookFormatter } from "../parsing/docbook/docbook_formatter";
 
 /**
  * Output format.
@@ -48,7 +48,7 @@ export class ParseCommand extends Command {
 
         // Run parser and generator and generate output file
         const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
-        const formatter: Formatter = new ODTFormatter();
+        const formatter: Formatter = new DocBookFormatter();
         const output = new Generator(formatter, this.session.logger).generate(
             new MDParser().parse(input)
         );
