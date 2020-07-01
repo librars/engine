@@ -2,7 +2,7 @@
 
 import { Formatter } from "../formatter";
 import { FormatNode } from "../format_node";
-import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode } from "./docbook_format_nodes";
+import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode, DocBookParagraphFormatNode } from "./docbook_format_nodes";
 
 /**
  * A formatter to output DocBookF format.
@@ -25,7 +25,9 @@ export class DocBookFormatter implements Formatter {
 
     /** @inheritdoc */
     public generateParagraphBlock(...content: Array<FormatNode>): FormatNode {
-        return new DocBookArrayFormatNode(content);
+        return new DocBookParagraphFormatNode(
+            new DocBookArrayFormatNode(content)
+        );
     }
 
     /** @inheritdoc */

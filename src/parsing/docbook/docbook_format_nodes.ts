@@ -1,6 +1,7 @@
 /** Andrea Tino - 2020 */
 
 import { FormatNode, isFormatNode } from "../format_node";
+import { DocbookTokens as Tokens } from "./docbook_tokens";
 
 /**
  * Describes the DocBook root.
@@ -18,8 +19,8 @@ export class DocBookRootFormatNode extends FormatNode {
         };
 
         this.chuncks = {
-            [DocBookRootFormatNode.BEFORE_CHUNK_K]: "<root>",
-            [DocBookRootFormatNode.AFTER_CHUNK_K]: "</root>"
+            [DocBookRootFormatNode.BEFORE_CHUNK_K]: Tokens.DOCBOOK_BOOK_OPEN_TAG_TOKEN,
+            [DocBookRootFormatNode.AFTER_CHUNK_K]: Tokens.DOCBOOK_BOOK_CLOSE_TAG_TOKEN
         };
     }
 
@@ -29,6 +30,38 @@ export class DocBookRootFormatNode extends FormatNode {
         const after = this.chuncks[DocBookRootFormatNode.AFTER_CHUNK_K];
 
         const content = this.placeholders[DocBookRootFormatNode.CONTENT_PLACEHOLDER_K].toString();
+
+        return `${before}${content}${after}`;
+    }
+}
+
+/**
+ * Describes the DocBook root.
+ */
+export class DocBookParagraphFormatNode extends FormatNode {
+    private static BEFORE_CHUNK_K = "before_chunk_k";
+    private static AFTER_CHUNK_K = "after_chunk_k";
+    private static CONTENT_PLACEHOLDER_K = "content_placeholder_k";
+
+    constructor(content: FormatNode) {
+        super();
+
+        this.placeholders = {
+            [DocBookParagraphFormatNode.CONTENT_PLACEHOLDER_K]: content
+        };
+
+        this.chuncks = {
+            [DocBookParagraphFormatNode.BEFORE_CHUNK_K]: Tokens.DOCBOOK_PARAGRAPH_OPEN_TAG_TOKEN,
+            [DocBookParagraphFormatNode.AFTER_CHUNK_K]: Tokens.DOCBOOK_PARAGRAPH_CLOSE_TAG_TOKEN
+        };
+    }
+
+    /** @inheritdoc */
+    public toString(): string {
+        const before = this.chuncks[DocBookParagraphFormatNode.BEFORE_CHUNK_K];
+        const after = this.chuncks[DocBookParagraphFormatNode.AFTER_CHUNK_K];
+
+        const content = this.placeholders[DocBookParagraphFormatNode.CONTENT_PLACEHOLDER_K].toString();
 
         return `${before}${content}${after}`;
     }

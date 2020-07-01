@@ -1,10 +1,15 @@
 /** Andrea Tino - 2020 */
 
-/** Describes a dictionary for storing chunks */
+/** Describes a dictionary for storing chunks. */
 export type ChuncksDict = { [k: string]: string };
 
-/** Describes a dictionary for storing placeholders */
+/** Describes a dictionary for storing placeholders. */
 export type PlaceholderDict = { [k: string]: FormatNode };
+
+/** Type for describing annotations to format nodes. */
+export interface AnnotationsObject {
+    indentation?: number;
+}
 
 /**
  * Describes a node in the format output tree.
@@ -28,6 +33,11 @@ export abstract class FormatNode {
 
     /** Converts the node into the final representation. */
     public abstract toString(): string;
+
+    /** Gets the annotations for this node. */
+    public get annotations(): AnnotationsObject {
+        return {};
+    }
 }
 
 /**

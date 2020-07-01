@@ -11,6 +11,8 @@ import { Formatter } from "../parsing/formatter";
 import { DocBookFormatter } from "../parsing/docbook/docbook_formatter";
 import { OutputFormat } from "../config";
 import { mapOutputFormat, Pandoc, PandocOutputFormat } from "../pandoc";
+import { Transformer } from "../parsing/transformer";
+import { DocBookTransformer } from "../parsing/docbook/docbook_transformer";
 
 /**
  * Describe a "parse" command.
@@ -43,7 +45,8 @@ export class ParseCommand extends Command {
         // Run parser and generator and generate output file
         const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
         const formatter: Formatter = new DocBookFormatter();
-        const output = new Generator(formatter, this.session.logger).generate(
+        const transformer: Transformer = new DocBookTransformer();
+        const output = new Generator(formatter, transformer, this.session.logger).generate(
             new MDParser().parse(input)
         );
         const outputFileName = `output.${formatter.fileExtension}`;
