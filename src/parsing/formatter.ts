@@ -9,6 +9,9 @@ export interface Formatter {
     /** Gets the identifier of the format for Pandoc */
     formatId: string;
 
+    /** Gets the extension (without dot) of the file this formatter is designed for. */
+    fileExtension: string;
+
     /** Generates the root. Formatter for nodes of type 'ROOT'. */
     generateRoot(...input: Array<FormatNode>): FormatNode;
 

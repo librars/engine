@@ -10,7 +10,12 @@ import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode
 export class DocBookFormatter implements Formatter {
     /** @inheritdoc */
     public get formatId(): string {
-        return "odt";
+        return "docbook";
+    }
+
+    /** @inheritdoc */
+    public get fileExtension(): string {
+        return "docbook.xml";
     }
 
     /** @inheritdoc */

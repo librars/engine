@@ -52,7 +52,7 @@ export class ParseCommand extends Command {
         const output = new Generator(formatter, this.session.logger).generate(
             new MDParser().parse(input)
         );
-        const outputFileName = "output.odt";
+        const outputFileName = `output.${formatter.fileExtension}`;
         this.session.addFile(outputFileName, output);
 
         // Run Pandoc
