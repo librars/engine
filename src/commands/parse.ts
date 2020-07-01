@@ -1,9 +1,7 @@
 /** Andrea Tino - 2020 */
 
 import path from "path";
-import os from "os"
 import yargs from "yargs";
-import process from "child_process"
 import fs from "fs";
 
 import { Command } from "./command";
@@ -11,11 +9,8 @@ import { MDParser } from "../parsing/parser";
 import { Generator } from "../parsing/generator";
 import { Formatter } from "../parsing/formatter";
 import { DocBookFormatter } from "../parsing/docbook/docbook_formatter";
-
-/**
- * Output format.
- */
-export type OutputFormat = "pdf" | "html";
+import { OutputFormat } from "../config";
+import { mapOutputFormat, Pandoc, PandocOutputFormat } from "../pandoc";
 
 /**
  * Describe a "parse" command.
@@ -31,13 +26,12 @@ export class ParseCommand extends Command {
     constructor(
         private filePath: string,
         private format: OutputFormat,
-        private pandocPath: string,
+        private pandocPath?: string,
         private intermediateFolder?: string
     ) {
         super(intermediateFolder);
 
         if (!filePath) throw new Error("Parameter 'filePath' required");
-        if (!pandocPath) throw new Error("Parameter 'pandocPath' required");
 
         format = format || "pdf";
     }
@@ -54,17 +48,20 @@ export class ParseCommand extends Command {
         );
         const outputFileName = `output.${formatter.fileExtension}`;
         this.session.addFile(outputFileName, output);
+        this.session.logger.info(`Generated Pandoc input file: '${outputFileName}'`);
 
         // Run Pandoc
-        const generatedFileName = `generated_output.${ParseCommand.outputFormat2Ext(this.format)}`;
+        const pandocOutputFormat = mapOutputFormat(this.format);
+        const generatedFileName = `generated_output.${ParseCommand.outputFormat2Ext(pandocOutputFormat)}`;
         const generatedFilePath = path.join(this.session.sessionDirPath, generatedFileName);
-        process.execFileSync(this.pandocPath, [
-            this.session.getFilePath(outputFileName),
-            "--from", formatter.formatId,
-            "--to", this.format,
-            "--output", generatedFilePath
-        ]);
-        this.session.logger.info(`Parsing completed, output: ${generatedFileName}`);
+        this.session.logger.info(`Running Pandoc from '${formatter.formatId}' to '${mapOutputFormat(this.format)}' on: '${outputFileName}'...`);
+        new Pandoc(this.pandocPath).execute(
+            formatter.formatId,                         // From
+            pandocOutputFormat,                         // To
+            this.session.getFilePath(outputFileName),   // Src
+            generatedFilePath                           // Dst
+        );
+        this.session.logger.info(`Pandoc parsing completed, output file: ${generatedFileName}`);
 
         // Provide output file to the user
         const userDstGeneratedOutputFilePath = path.join(__dirname, generatedFileName);
@@ -86,7 +83,7 @@ export class ParseCommand extends Command {
         return yargs.command("parse <file>", "", y => {
             return y.option("pandoc-path", {
                 alias: "p",
-                default: ParseCommand.getDefaultPandocPath()
+                default: undefined
             }).option("intermediate-folder", {
                 alias: "i",
                 default: Command.getDefaultIntermediateFolder()
@@ -106,19 +103,10 @@ export class ParseCommand extends Command {
         });
     }
 
-    private static getDefaultPandocPath(): string {
-        switch (os.platform()) {
-            case "win32":
-                return path.join("C:", "Program Files", "Pandoc", "pandoc.exe");
-            default:
-                throw new Error("Not supported yet");
-        }
-    }
-
-    private static outputFormat2Ext(format: OutputFormat): string {
+    private static outputFormat2Ext(format: PandocOutputFormat): string {
         switch (format) {
-            case "pdf":
-                return "pdf";
+            case "latex":
+                return "tex";
             case "html":
                 return "html";
         }

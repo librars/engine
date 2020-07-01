@@ -99,6 +99,6 @@ export class Generator {
             ? message
             : `${message} - Node is: '${JSON.stringify(node)}'`;
 
-        this.logger.info(msg);
+        this.logger.trace(msg);
     }
 }
