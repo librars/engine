@@ -24,6 +24,10 @@ export interface Formatter {
     /** Generates a literal. */
     generateLiteral(input: string): FormatNode;
 
-    /** Generates an array. */
-    generateArray(input: Array<FormatNode | string>): FormatNode;
+    /**
+     * Generates an array
+     * @param input The input array.
+     * @typedef T The type of items in the array.
+     */
+    generateArray<T>(input: Array<T>): FormatNode;
 }

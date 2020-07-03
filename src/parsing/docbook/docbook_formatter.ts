@@ -41,7 +41,7 @@ export class DocBookFormatter implements Formatter {
     }
 
     /** @inheritdoc */
-    public generateArray(array: Array<FormatNode | string>): FormatNode {
-        return new DocBookArrayFormatNode(array);
+    public generateArray<T = FormatNode | string>(array: Array<T>): FormatNode {
+        return new DocBookArrayFormatNode<T>(array);
     }
 }

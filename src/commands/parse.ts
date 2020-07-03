@@ -5,14 +5,13 @@ import yargs from "yargs";
 import fs from "fs";
 
 import { Command } from "./command";
-import { MDParser } from "../parsing/parser";
-import { Generator } from "../parsing/generator";
 import { Formatter } from "../parsing/formatter";
 import { DocBookFormatter } from "../parsing/docbook/docbook_formatter";
 import { OutputFormat } from "../config";
 import { mapOutputFormat, Pandoc, PandocOutputFormat } from "../pandoc";
 import { Transformer } from "../parsing/transformer";
 import { DocBookTransformer } from "../parsing/docbook/docbook_transformer";
+import { ParsingPipeline } from "../parsing/parsing_pipeline";
 
 /**
  * Describe a "parse" command.
@@ -46,9 +45,11 @@ export class ParseCommand extends Command {
         const input: string = fs.readFileSync(this.filePath, {encoding: "utf-8"});
         const formatter: Formatter = new DocBookFormatter();
         const transformer: Transformer = new DocBookTransformer();
-        const output = new Generator(formatter, transformer, this.session.logger).generate(
-            new MDParser().parse(input)
-        );
+        const output = new ParsingPipeline(
+            formatter,
+            transformer,
+            this.session.logger
+        ).run(input);
         const outputFileName = `output.${formatter.fileExtension}`;
         this.session.addFile(outputFileName, output);
         this.session.logger.info(`Generated Pandoc input file: '${outputFileName}'`);

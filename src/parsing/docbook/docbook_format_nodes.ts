@@ -2,68 +2,100 @@
 
 import { FormatNode, isFormatNode } from "../format_node";
 import { DocbookTokens as Tokens } from "./docbook_tokens";
+import { generateRandomSimpleId } from "../../utils";
 
 /**
  * Describes the DocBook root.
  */
 export class DocBookRootFormatNode extends FormatNode {
-    private static BEFORE_CHUNK_K = "before_chunk_k";
-    private static AFTER_CHUNK_K = "after_chunk_k";
-    private static CONTENT_PLACEHOLDER_K = "content_placeholder_k";
+    private content: FormatNode;
 
+    /**
+     * Initializes a new instance of this class.
+     * @param content The content node to assign.
+     */
     constructor(content: FormatNode) {
         super();
 
-        this.placeholders = {
-            [DocBookRootFormatNode.CONTENT_PLACEHOLDER_K]: content
-        };
+        this.content = content;
+    }
 
-        this.chuncks = {
-            [DocBookRootFormatNode.BEFORE_CHUNK_K]: Tokens.DOCBOOK_BOOK_OPEN_TAG_TOKEN,
-            [DocBookRootFormatNode.AFTER_CHUNK_K]: Tokens.DOCBOOK_BOOK_CLOSE_TAG_TOKEN
-        };
+    /**
+     * Gets the collection of children in non-terminal 'textstream'.
+     */
+    public get children(): Array<FormatNode> {
+        const arrayFormatNode = this.content as DocBookArrayFormatNode<FormatNode>;
+        return arrayFormatNode.items;
     }
 
     /** @inheritdoc */
     public toString(): string {
-        const before = this.chuncks[DocBookRootFormatNode.BEFORE_CHUNK_K];
-        const after = this.chuncks[DocBookRootFormatNode.AFTER_CHUNK_K];
+        const before = Tokens.DOCBOOK_BOOK_OPEN_TAG_TOKEN;
+        const after = Tokens.DOCBOOK_BOOK_CLOSE_TAG_TOKEN;
 
-        const content = this.placeholders[DocBookRootFormatNode.CONTENT_PLACEHOLDER_K].toString();
-
-        return `${before}${content}${after}`;
+        return `${before}${this.content.toString()}${after}`;
     }
 }
 
 /**
- * Describes the DocBook root.
+ * Describes the DocBook paragraph.
  */
 export class DocBookParagraphFormatNode extends FormatNode {
-    private static BEFORE_CHUNK_K = "before_chunk_k";
-    private static AFTER_CHUNK_K = "after_chunk_k";
-    private static CONTENT_PLACEHOLDER_K = "content_placeholder_k";
+    private content: FormatNode;
 
+    /**
+     * Initializes a new instance of this class.
+     * @param content The content node to assign.
+     */
     constructor(content: FormatNode) {
         super();
 
-        this.placeholders = {
-            [DocBookParagraphFormatNode.CONTENT_PLACEHOLDER_K]: content
-        };
+        this.content = content;
+    }
 
-        this.chuncks = {
-            [DocBookParagraphFormatNode.BEFORE_CHUNK_K]: Tokens.DOCBOOK_PARAGRAPH_OPEN_TAG_TOKEN,
-            [DocBookParagraphFormatNode.AFTER_CHUNK_K]: Tokens.DOCBOOK_PARAGRAPH_CLOSE_TAG_TOKEN
-        };
+    /**
+     * Gets the collection of children in non-terminal 'textstream'.
+     */
+    public get children(): Array<FormatNode> {
+        // The generator will create format nodes for formatting AST nodes and literal nodes for strings
+        const arrayFormatNode = this.content as DocBookArrayFormatNode<FormatNode>;
+        return arrayFormatNode.items;
     }
 
     /** @inheritdoc */
     public toString(): string {
-        const before = this.chuncks[DocBookParagraphFormatNode.BEFORE_CHUNK_K];
-        const after = this.chuncks[DocBookParagraphFormatNode.AFTER_CHUNK_K];
+        const before = Tokens.DOCBOOK_PARAGRAPH_OPEN_TAG_TOKEN;
+        const after = Tokens.DOCBOOK_PARAGRAPH_CLOSE_TAG_TOKEN;
 
-        const content = this.placeholders[DocBookParagraphFormatNode.CONTENT_PLACEHOLDER_K].toString();
+        return `${before}${this.content.toString()}${after}`;
+    }
+}
 
-        return `${before}${content}${after}`;
+/**
+ * Describes the DocBook section.
+ */
+export class DocBookSectionFormatNode extends FormatNode {
+    private content: FormatNode;
+    private id: string;
+
+    /**
+     * Initializes a new instance of this class.
+     * @param content The content node to assign.
+     * @param id The id to assign to the section. If nothing is passed, a random one will be created.
+     */
+    constructor(content: FormatNode, id?: string) {
+        super();
+
+        this.content = content;
+        this.id = id || generateRandomSimpleId();
+    }
+
+    /** @inheritdoc */
+    public toString(): string {
+        const before = Tokens.DOCBOOK_SECTION_OPEN_TAG_TOKEN(this.id);
+        const after = Tokens.DOCBOOK_SECTION_CLOSE_TAG_TOKEN;
+
+        return `${before}${this.content.toString()}${after}`;
     }
 }
 
@@ -73,6 +105,10 @@ export class DocBookParagraphFormatNode extends FormatNode {
 export class DocBookLiteralFormatNode extends FormatNode {
     private literal: FormatNode | string;
 
+    /**
+     * Initializes a new instance of this class.
+     * @param literal The literal node to include.
+     */
     constructor(literal: FormatNode | string) {
         super();
 
@@ -91,14 +127,30 @@ export class DocBookLiteralFormatNode extends FormatNode {
 
 /**
  * Describes an DocBook array.
+ * @typedef T The type of items.
  */
-export class DocBookArrayFormatNode extends FormatNode {
-    private array: Array<FormatNode | string>;
+export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode {
+    private array: Array<T>;
+    private stringifier?: (v: T) => string;
 
-    constructor(array: Array<FormatNode | string>) {
+    /**
+     * Initializes a new instance of this class.
+     * @param array The array node to include.
+     * @param stringifier When T is not a 'FormatNode', this function is called
+     *     to get the string representation of items.
+     */
+    constructor(array: Array<T>, stringifier?: (v: T) => string) {
         super();
 
         this.array = array;
+        this.stringifier = stringifier;
+    }
+
+    /**
+     * Gets the items in the array.
+     */
+    public get items(): Array<T> {
+        return this.array;
     }
 
     /** @inheritdoc */
@@ -106,10 +158,22 @@ export class DocBookArrayFormatNode extends FormatNode {
         const result = new Array<string>();
 
         for (let i = 0; i < this.array.length; i++) {
-            const element = this.array[i];
-            result.push(isFormatNode(element) ? element.toString() : element);
+            const item = this.array[i];
+            result.push(this.item2String(item));
         }
 
         return result.reduce((a, b) => `${a}\n${b}`);
+    }
+
+    private item2String(item: T): string {
+        if (isFormatNode(item)) {
+            return item.toString();
+        }
+
+        if (this.stringifier) {
+            return this.stringifier(item);
+        }
+
+        throw new Error(`Item ${JSON.stringify(item)} could not be stringified.`);
     }
 }
