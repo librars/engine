@@ -2,18 +2,24 @@
 
 import { MDNode } from "./parser";
 
-/**
- * Represents the type of a node type.
- */
+/** Represents the type of a node type. */
 export type MDNodeType = 
     "ROOT" |
     "TEXT:INLINE" |
-    "PARAGRAPH:BLOCK";
+    "PARAGRAPH:BLOCK" |
+    "HEADING:BLOCK";
+
+/** Represents a custom HEADING node in the grammar. */
+export type Heading = {
+    level: number,
+    title: string,
+    paragraph: MDNode
+}
 
 /**
  * Represents the type of a node value.
  */
-export type MDNodeValue = MDNode | Array<MDNode> | string | Array<string>;
+export type MDNodeValue = MDNode | Array<MDNode> | string | Array<string> | Heading;
 
 /**
  * Type guard.
@@ -53,4 +59,12 @@ export function isMDNodeValueOfTypeStringArray(ast: any): ast is Array<string> {
         return isMDNodeValueOfTypeString(ast[0]);
     }
     return isArray;
+}
+
+/**
+ * Type guard.
+ * @param {MDNodeValue} ast The AST to check.
+ */
+export function isMDNodeValueOfTypeHeading(ast: any): ast is Heading { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+    return ast.level !== undefined && ast.level !== undefined && ast.paragraph !== undefined;
 }

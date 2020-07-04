@@ -5,6 +5,8 @@ import { FormatNode } from "./format_node";
 /**
  * Describes a transformer to process an annotated tree into a
  * non-annotated tree ready for output emission.
+ * 
+ * Transformers are also concerned about semantic analysis.
  */
 export interface Transformer {
     /**

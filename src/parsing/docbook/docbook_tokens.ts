@@ -24,4 +24,10 @@ export class DocbookTokens {
 
     /** Closing tag for section. */
     public static DOCBOOK_SECTION_CLOSE_TAG_TOKEN = "</section>";
+
+    /** Open tag for title. */
+    public static DOCBOOK_TITLE_OPEN_TAG_TOKEN = "<title>";
+
+    /** Closing tag for title. */
+    public static DOCBOOK_TITLE_CLOSE_TAG_TOKEN = "</title>";
 }

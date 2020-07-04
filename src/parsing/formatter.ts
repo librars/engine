@@ -18,6 +18,9 @@ export interface Formatter {
     /** Generates a paragraph block. Formatter for nodes of type 'PARAGRAPH:BLOCK'. */
     generateParagraphBlock(...input: Array<FormatNode>): FormatNode;
 
+    /** Generates a heading block. Formatter fot nodes of type: 'HEADING:BLOCK'. */
+    generateHeadingBlock(title: string, level: number, paragraph: FormatNode): FormatNode;
+
     /** Generates a text inline element. Formatter for nodes of type 'TEXT:INLINE'. */
     generateTextInline(input: FormatNode): FormatNode;
 

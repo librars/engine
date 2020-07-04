@@ -17,7 +17,13 @@ export class DocBookTransformer implements Transformer {
         return formatTree;
     }
 
-    private generateSections(root: FormatNode): FormatNode {
+    // In order to properly generate DocBook output, sections must be nested
+    // into one another to generate the proper indentation level and
+    // document structure.
+    // Also, paragraphs and other block nodes inside non-terminal 'blockflow'
+    // must be included into their respective sessions. This method will take
+    // care of setting the proper structure inside the root node.
+    private defineSectionStructure(root: FormatNode): FormatNode {
         // Root must be of specific type
         if (!(root instanceof DocBookRootFormatNode)) {
             throw new Error("Root type not expected");
@@ -25,8 +31,7 @@ export class DocBookTransformer implements Transformer {
 
         // Start with a section
         // At least one section is necessary inside non-terminal 'blockflow'
-        const createFirstSection = (content: Array<FormatNode>) => new DocBookSectionFormatNode(new DocBookArrayFormatNode(content));
-        const firstSectionContent: Array<FormatNode> = [];
+        let currentSection: FormatNode | null = null;
         for (const child of root.children) {
             // TODO
         }

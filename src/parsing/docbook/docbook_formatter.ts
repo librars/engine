@@ -2,7 +2,7 @@
 
 import { Formatter } from "../formatter";
 import { FormatNode } from "../format_node";
-import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode, DocBookParagraphFormatNode } from "./docbook_format_nodes";
+import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode, DocBookParagraphFormatNode, DocBookHeadingFormatNode } from "./docbook_format_nodes";
 
 /**
  * A formatter to output DocBookF format.
@@ -28,6 +28,10 @@ export class DocBookFormatter implements Formatter {
         return new DocBookParagraphFormatNode(
             new DocBookArrayFormatNode(content)
         );
+    }
+    /** @inheritdoc */
+    public generateHeadingBlock(title: string, level: number, paragraph: FormatNode): FormatNode {
+        return new DocBookHeadingFormatNode(paragraph, title, level);
     }
 
     /** @inheritdoc */

@@ -8,16 +8,14 @@ import { generateRandomSimpleId } from "../../utils";
  * Describes the DocBook root.
  */
 export class DocBookRootFormatNode extends FormatNode {
-    private content: FormatNode;
-
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
      */
-    constructor(content: FormatNode) {
+    constructor(
+        private content: FormatNode
+    ) {
         super();
-
-        this.content = content;
     }
 
     /**
@@ -41,16 +39,14 @@ export class DocBookRootFormatNode extends FormatNode {
  * Describes the DocBook paragraph.
  */
 export class DocBookParagraphFormatNode extends FormatNode {
-    private content: FormatNode;
-
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
      */
-    constructor(content: FormatNode) {
+    constructor(
+        private content: FormatNode
+    ) {
         super();
-
-        this.content = content;
     }
 
     /**
@@ -72,27 +68,67 @@ export class DocBookParagraphFormatNode extends FormatNode {
 }
 
 /**
+ * Describes the DocBook heading.
+ */
+export class DocBookHeadingFormatNode extends FormatNode {
+    /**
+     * Initializes a new instance of this class.
+     * @param paragraph The paragraph associated to the heading.
+     * @param title The title of the heading.
+     * @param _level The level of the heading (number of '#').
+     *     Examples are:
+     *     - '# Title' => level = 1
+     *     - '## Title' => level = 2
+     *     - etc.
+     * @param id The id to assign to the section. If nothing is passed, a random one will be created.
+     */
+    constructor(
+        private paragraph: FormatNode,
+        private title: string,
+        private _level: number,
+        private id?: string
+    ) {
+        super();
+    }
+
+    /** Gets the level. */
+    public get level(): number {
+        return this.level;
+    }
+
+    /** @inheritdoc */
+    public toString(): string {
+        const before = Tokens.DOCBOOK_SECTION_OPEN_TAG_TOKEN(this.id || generateRandomSimpleId());
+        const after = Tokens.DOCBOOK_SECTION_CLOSE_TAG_TOKEN;
+
+        const beforeTitle = Tokens.DOCBOOK_TITLE_OPEN_TAG_TOKEN;
+        const afterTitle = Tokens.DOCBOOK_TITLE_CLOSE_TAG_TOKEN;
+        const title = `${beforeTitle}${this.title}${afterTitle}`;
+
+        return `${before}${title}${this.paragraph.toString()}${after}`;
+    }
+}
+
+/**
  * Describes the DocBook section.
+ * Note: This has no corresponding non-literal in the grammar but it is present for utility.
  */
 export class DocBookSectionFormatNode extends FormatNode {
-    private content: FormatNode;
-    private id: string;
-
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
      * @param id The id to assign to the section. If nothing is passed, a random one will be created.
      */
-    constructor(content: FormatNode, id?: string) {
+    constructor(
+        private content: FormatNode,
+        private id?: string
+    ) {
         super();
-
-        this.content = content;
-        this.id = id || generateRandomSimpleId();
     }
 
     /** @inheritdoc */
     public toString(): string {
-        const before = Tokens.DOCBOOK_SECTION_OPEN_TAG_TOKEN(this.id);
+        const before = Tokens.DOCBOOK_SECTION_OPEN_TAG_TOKEN(this.id || generateRandomSimpleId());
         const after = Tokens.DOCBOOK_SECTION_CLOSE_TAG_TOKEN;
 
         return `${before}${this.content.toString()}${after}`;
@@ -103,13 +139,13 @@ export class DocBookSectionFormatNode extends FormatNode {
  * Describes an DocBook literal.
  */
 export class DocBookLiteralFormatNode extends FormatNode {
-    private literal: FormatNode | string;
-
     /**
      * Initializes a new instance of this class.
      * @param literal The literal node to include.
      */
-    constructor(literal: FormatNode | string) {
+    constructor(
+        private literal: FormatNode | string
+    ) {
         super();
 
         this.literal = literal;
@@ -130,20 +166,19 @@ export class DocBookLiteralFormatNode extends FormatNode {
  * @typedef T The type of items.
  */
 export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode {
-    private array: Array<T>;
-    private stringifier?: (v: T) => string;
-
     /**
      * Initializes a new instance of this class.
      * @param array The array node to include.
      * @param stringifier When T is not a 'FormatNode', this function is called
      *     to get the string representation of items.
+     * @param separator The string to use for separating items when rendering.
      */
-    constructor(array: Array<T>, stringifier?: (v: T) => string) {
+    constructor(
+        private array: Array<T>,
+        private stringifier?: (v: T) => string,
+        private separator: string = "\n"
+    ) {
         super();
-
-        this.array = array;
-        this.stringifier = stringifier;
     }
 
     /**
@@ -162,7 +197,7 @@ export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode 
             result.push(this.item2String(item));
         }
 
-        return result.reduce((a, b) => `${a}\n${b}`);
+        return result.reduce((a, b) => `${a}${this.separator}${b}`);
     }
 
     private item2String(item: T): string {

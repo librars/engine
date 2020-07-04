@@ -3,7 +3,7 @@
 import { Formatter } from "./formatter";
 import { MDNode } from "./parser";
 import { FormatNode } from "./format_node";
-import { MDNodeValue, isMDNodeValueOfTypeNode, isMDNodeValueOfTypeString, isMDNodeValueOfTypeNodeArray, isMDNodeValueOfTypeStringArray } from "./ast_types";
+import { MDNodeValue, isMDNodeValueOfTypeNode, isMDNodeValueOfTypeString, isMDNodeValueOfTypeNodeArray, isMDNodeValueOfTypeStringArray, isMDNodeValueOfTypeHeading } from "./ast_types";
 import { Logger } from "../logging/logger";
 import { Transformer } from "./transformer";
 
@@ -63,8 +63,16 @@ export class Generator {
                 case "ROOT":
                     this.trace("Generating ROOT", ast);
                     return this.formatter.generateRoot(this.generateFormatTreeNode(ast.v));
+                case "HEADING:BLOCK":
+                    this.trace("Generating HEADING:BLOCK", ast);
+                    if (isMDNodeValueOfTypeHeading(ast.v)) {
+                        return this.formatter.generateHeadingBlock(ast.v.title, ast.v.level, this.generateFormatTreeNode(ast.v.paragraph));
+                    }
+                    throw new Error(`Unexpected value node. Expected 'HEADING', got: '${JSON.stringify(ast.v)}'`);
                 case "PARAGRAPH:BLOCK":
                     this.trace("Generating PARAGRAPH:BLOCK", ast);
+                    // A paragraph might fall inside its own section or not
+                    // We generatejust the paragraph here, it's up to the transformer to handle this situation
                     return this.formatter.generateParagraphBlock(this.generateFormatTreeNode(ast.v));
                 case "TEXT:INLINE":
                     this.trace("Generating TEXT:INLINE", ast);
