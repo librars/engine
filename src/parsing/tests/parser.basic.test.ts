@@ -1,3 +1,8 @@
+/**
+ * Contains tests targeting the MDParser.
+ * Basic tests for simple and elementary scenarios.
+ */
+
 import {} from "jest";
 
 import { MDParser } from "../parser";

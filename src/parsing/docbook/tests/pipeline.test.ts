@@ -1,3 +1,7 @@
+/**
+ * Contains E2E tests targeting the parsing pre-Pandoc.
+ */
+
 import {} from "jest";
 
 import { ParsingPipeline } from "../../parsing_pipeline";

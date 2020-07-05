@@ -1,3 +1,7 @@
+/**
+ * Contains tests targeting the general-purpose utils.
+ */
+
 import {} from "jest";
 import { addToArray } from "../utils";
 

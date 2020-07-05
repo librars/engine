@@ -1,3 +1,8 @@
+/**
+ * Contains tests targeting the MDParser.
+ * Tests validating block non-terminals.
+ */
+
 import {} from "jest";
 
 import { MDParser, MDNode } from "../parser";

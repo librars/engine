@@ -1,3 +1,7 @@
+/**
+ * Contains tests targeting the transformer.
+ */
+
 import {} from "jest";
 
 import { ParsingPipeline } from "../../parsing_pipeline";
