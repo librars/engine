@@ -5,7 +5,6 @@ import { MDNode } from "./parser";
 import { FormatNode } from "./format_node";
 import { MDNodeValue, isMDNodeValueOfTypeNode, isMDNodeValueOfTypeString, isMDNodeValueOfTypeNodeArray, isMDNodeValueOfTypeStringArray, isMDNodeValueOfTypeHeading } from "./ast_types";
 import { Logger } from "../logging/logger";
-import { Transformer } from "./transformer";
 
 /**
  * Describes a generator to convert an AST into the output format.
@@ -15,7 +14,6 @@ import { Transformer } from "./transformer";
  */
 export class Generator {
     private formatter: Formatter;
-    private transformer: Transformer;
     private logger?: Logger;
 
     /**
@@ -23,15 +21,10 @@ export class Generator {
      * @param formatter The formatter to use.
      *     The formatter is responsible for create every format node which will be
      *     responsible for generating the output format.
-     * @param transformer The transformer to use.
-     *     The transformer will take the annotated format tree and rearrange it in
-     *     the final tree ready to be recursively processed for output generation.
-     *     The final tree will have annotations removed.
      * @param logger The logger to use for tracing. When undefined, no logging occurs.
      */
-    constructor(formatter: Formatter, transformer: Transformer, logger?: Logger) {
+    constructor(formatter: Formatter, logger?: Logger) {
         this.formatter = formatter;
-        this.transformer = transformer;
         this.logger = logger;
     }
 
@@ -43,16 +36,8 @@ export class Generator {
      * the final output.
      * @param {MDNode} ast The AST emitted by the parser.
      */
-    public generate(ast: MDNode): string {
-        // Recursively create the format tree
-        const annotatedFormatTree = this.generateFormatTreeNode(ast);
-
-        // Call the transformer to get from the annotated-format-tree to the format-tree
-        // which is the structure ready for emitting the final output.
-        const formatTree = this.transformer.transform(annotatedFormatTree);
-
-        // Generate the output
-        return formatTree.toString();
+    public generate(ast: MDNode): FormatNode {
+        return this.generateFormatTreeNode(ast);
     }
 
     private generateFormatTreeNode(ast: MDNodeValue): FormatNode {
