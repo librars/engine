@@ -4,10 +4,22 @@ import { Formatter } from "../formatter";
 import { FormatNode } from "../format_node";
 import { DocBookRootFormatNode, DocBookLiteralFormatNode, DocBookArrayFormatNode, DocBookParagraphFormatNode, DocBookHeadingFormatNode } from "./docbook_format_nodes";
 
+/** Describes a function to generate ids. */
+export type IdGenerator = (input?: unknown) => string;
+
 /**
  * A formatter to output DocBookF format.
  */
 export class DocBookFormatter implements Formatter {
+    /**
+     * Initializes a new instance of this class.
+     * @param idgen The id generator to use.
+     */
+    constructor(
+        private idgen?: IdGenerator
+    ) {
+    }
+
     /** @inheritdoc */
     public get formatId(): string {
         return "docbook";
@@ -31,7 +43,7 @@ export class DocBookFormatter implements Formatter {
     }
     /** @inheritdoc */
     public generateHeadingBlock(title: string, level: number, paragraph: FormatNode): FormatNode {
-        return new DocBookHeadingFormatNode(paragraph, title, level);
+        return new DocBookHeadingFormatNode(paragraph, title, level, this.generateId());
     }
 
     /** @inheritdoc */
@@ -47,5 +59,12 @@ export class DocBookFormatter implements Formatter {
     /** @inheritdoc */
     public generateArray<T extends { clone(): T } = FormatNode>(array: Array<T>): FormatNode {
         return new DocBookArrayFormatNode<T>(array);
+    }
+
+    private generateId(): string | undefined {
+        if (!this.idgen) {
+            return undefined;
+        }
+        return this.idgen();
     }
 }

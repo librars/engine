@@ -4,10 +4,22 @@ import { Transformer } from "../transformer";
 import { FormatNode, isModifiableNodesContainer } from "../format_node";
 import { DocBookRootFormatNode, DocBookSectionFormatNode, DocBookArrayFormatNode, DocBookHeadingFormatNode } from "./docbook_format_nodes";
 
+/** Describes a function to generate ids. */
+export type IdGenerator = (input?: unknown) => string;
+
 /**
  * The DocBook transformer.
  */
 export class DocBookTransformer implements Transformer {
+    /**
+     * Initializes a new instance of this class.
+     * @param idgen The id generator to use.
+     */
+    constructor(
+        private idgen?: IdGenerator
+    ) {
+    }
+
     /**
      * Scan the input tree in order to re-arrange the nodes in
      * the proper way, suitable for output emission.
@@ -41,7 +53,7 @@ export class DocBookTransformer implements Transformer {
         // created, therefore add one manually.
         if (!DocBookTransformer.isNodeASection(root.childNodes[0])) {
             newRootChildren.push(
-                new DocBookSectionFormatNode([])
+                this.createSection([])
             );
         }
 
@@ -69,6 +81,17 @@ export class DocBookTransformer implements Transformer {
 
         // Return a new root node
         return new DocBookRootFormatNode(new DocBookArrayFormatNode<FormatNode>(newRootChildren));
+    }
+
+    private createSection(content: Array<FormatNode>): DocBookSectionFormatNode {
+        return new DocBookSectionFormatNode(content, this.generateId());
+    }
+
+    private generateId(): string | undefined {
+        if (!this.idgen) {
+            return undefined;
+        }
+        return this.idgen();
     }
 
     private static isNodeASection(node: FormatNode): boolean {
