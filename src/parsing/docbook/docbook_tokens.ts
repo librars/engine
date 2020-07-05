@@ -20,7 +20,7 @@ export class DocbookTokens {
      * Open tag for section.
      * @param id The id to assign.
      */
-    public static DOCBOOK_SECTION_OPEN_TAG_TOKEN = (id: string) => `<section xml:id="${id}">`;
+    public static DOCBOOK_SECTION_OPEN_TAG_TOKEN = (id: string): string => `<section xml:id="${id}">`;
 
     /** Closing tag for section. */
     public static DOCBOOK_SECTION_CLOSE_TAG_TOKEN = "</section>";
