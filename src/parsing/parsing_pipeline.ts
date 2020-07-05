@@ -4,13 +4,19 @@ import { Formatter } from "./formatter";
 import { Transformer } from "./transformer";
 import { Logger } from "../logging/logger";
 import { Generator } from "./generator";
-import { MDParser } from "./parser";
+import { MDParser, MDNode } from "./parser";
 import { FormatNode } from "./format_node";
 
 /**
  * Describes a pipeline for parsing input files into output to pass to Pandoc.
  */
 export class ParsingPipeline {
+    // Cached quantities
+    private _ast: MDNode | null = null;
+    private _generatedTree: FormatNode | null = null;
+    private _transformedTree: FormatNode | null = null;
+    private _renderedOutput: string | null = null;
+
     /**
      * Initializes a new instance of this class.
      * @param formatter The formatter to use.
@@ -33,16 +39,42 @@ export class ParsingPipeline {
      * @param input The input string to parse.
      */
     public run(input: string): string {
-        // Recursively create the format tree
-        const generatedTree: FormatNode = new Generator(this.formatter, this.logger).generate(
-            new MDParser().parse(input)
-        );
+        // 1. Generate the AST
+        this._ast = new MDParser().parse(input);
 
-        // Call the transformer to get from the annotated-format-tree to the format-tree
-        // which is the structure ready for emitting the final output.
-        const transformedTree = this.transformer.transform(generatedTree);
+        // 2. Recursively create the format tree
+        this._generatedTree = new Generator(
+            this.formatter,
+            this.logger
+        ).generate(this._ast);
 
-        // Emit output
-        return transformedTree.toString();
+        // 3. Call the transformer to get from the annotated-format-tree to the format-tree
+        //    which is the structure ready for emitting the final output.
+        this._transformedTree = this.transformer.transform(this._generatedTree);
+
+        // 4. Emit output
+        this._renderedOutput = this._transformedTree.toString();
+
+        return this._renderedOutput;
+    }
+
+    /** Gets the AST generated from latest call to 'run'. */
+    public get ast(): MDNode | null {
+        return this._ast;
+    }
+
+    /** Gets the parsed tree created from latest call to 'run'. */
+    public get generatedTree(): FormatNode | null {
+        return this._generatedTree;
+    }
+
+    /** Gets the transformed tree created from latest call to 'run'. */
+    public get transformedTree(): FormatNode | null {
+        return this._transformedTree;
+    }
+
+    /** Gets the rendered output generated from latest call to 'run'. */
+    public get renderedOutput(): string | null {
+        return this._renderedOutput;
     }
 }

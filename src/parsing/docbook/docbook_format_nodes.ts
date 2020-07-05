@@ -51,7 +51,7 @@ export class DocBookRootFormatNode extends FormatNode implements NodesContainer,
 /**
  * Describes the DocBook paragraph.
  */
-export class DocBookParagraphFormatNode extends FormatNode {
+export class DocBookParagraphFormatNode extends FormatNode implements NodesContainer {
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
@@ -62,10 +62,8 @@ export class DocBookParagraphFormatNode extends FormatNode {
         super();
     }
 
-    /**
-     * Gets the collection of children in non-terminal 'textstream'.
-     */
-    public get children(): Array<FormatNode> {
+    /** @inheritdoc */
+    public get childNodes(): Array<FormatNode> {
         // The generator will create format nodes for formatting AST nodes and literal nodes for strings
         const arrayFormatNode = this.content as DocBookArrayFormatNode<FormatNode>;
         return arrayFormatNode.items;
