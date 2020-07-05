@@ -19,7 +19,7 @@ export class DocBookFormatter implements Formatter {
     }
 
     /** @inheritdoc */
-    public generateRoot(content: FormatNode): FormatNode {
+    public generateRoot(content: DocBookArrayFormatNode<FormatNode>): FormatNode {
         return new DocBookRootFormatNode(content);
     }
 
@@ -45,7 +45,7 @@ export class DocBookFormatter implements Formatter {
     }
 
     /** @inheritdoc */
-    public generateArray<T = FormatNode | string>(array: Array<T>): FormatNode {
+    public generateArray<T extends { clone(): T } = FormatNode>(array: Array<T>): FormatNode {
         return new DocBookArrayFormatNode<T>(array);
     }
 }

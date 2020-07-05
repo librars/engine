@@ -8,7 +8,7 @@ export interface AnnotationsObject {
 /**
  * Describes a node in the format output tree.
  */
-export abstract class FormatNode {
+export abstract class FormatNode implements ClonableNode {
     /** Converts the node into the final representation. */
     public abstract toString(): string;
 
@@ -16,6 +16,9 @@ export abstract class FormatNode {
     public get annotations(): AnnotationsObject {
         return {};
     }
+
+    /** @inheritdoc */
+    public abstract clone(): FormatNode;
 }
 
 /**
@@ -36,16 +39,26 @@ export interface ModifiableNodesContainer {
     /**
      * Adds a node at the specified position.
      * @param node The node to add.
-     * @param position The position. If n is specified, the new child will be in position n+1.
+     * @param at The position. If n is specified, the new child will be in position n+1.
+     *     If not specified, the item will be appended last.
+     * @returns The length of the updated cllection.
      */
-    addChildNode(node: FormatNode, position?: number): void;
+    addChildNode(node: FormatNode, at?: FormatNode | number): number;
 
     /**
      * Removes a node from the collection of children.
-     * @param position The position where to remove the node.
+     * @param at The position where to remove the node.
      * @returns The removed node.
      */
-    removeChildNode(position: number): FormatNode;
+    removeChildNode(at: FormatNode | number): FormatNode;
+}
+
+/**
+ * Type guard to check whether an object implements interface 'ModifiableNodesContainer'.
+ * @param obj The object to check.
+ */
+export function isModifiableNodesContainer(obj: any): obj is ModifiableNodesContainer { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+    return "addChildNode" in obj && "removeChildNode" in obj;
 }
 
 /**
@@ -65,14 +78,4 @@ export interface ClonableNode {
  */
 export function isFormatNode(element: any): element is FormatNode { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
     return typeof(element) === "object" && "toString" in element;
-}
-
-/**
- * Describes a format node producing an empty string
- */
-export class EmptyFormatNode extends FormatNode {
-    /** @inheritdoc */
-    public toString(): string {
-        return "";
-    }
 }

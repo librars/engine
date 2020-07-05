@@ -32,5 +32,5 @@ export interface Formatter {
      * @param input The input array.
      * @typedef T The type of items in the array.
      */
-    generateArray<T>(input: Array<T>): FormatNode;
+    generateArray<T extends { clone(): T } = FormatNode>(input: Array<T>): FormatNode;
 }

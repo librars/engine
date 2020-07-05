@@ -1,29 +1,37 @@
 /** Andrea Tino - 2020 */
 
-import { FormatNode, isFormatNode } from "../format_node";
+import { FormatNode, NodesContainer, isFormatNode, ModifiableNodesContainer } from "../format_node";
 import { DocbookTokens as Tokens } from "./docbook_tokens";
-import { generateRandomSimpleId } from "../../utils";
+import { generateRandomSimpleId, addToArray, removeFromArray } from "../../utils";
 
 /**
  * Describes the DocBook root.
  */
-export class DocBookRootFormatNode extends FormatNode {
+export class DocBookRootFormatNode extends FormatNode implements NodesContainer, ModifiableNodesContainer {
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
      */
     constructor(
-        private content: FormatNode
+        private content: DocBookArrayFormatNode<FormatNode>
     ) {
         super();
     }
 
-    /**
-     * Gets the collection of children in non-terminal 'textstream'.
-     */
-    public get children(): Array<FormatNode> {
-        const arrayFormatNode = this.content as DocBookArrayFormatNode<FormatNode>;
-        return arrayFormatNode.items;
+    /** @inheritdoc */
+    public get childNodes(): Array<FormatNode> {
+        return this.content.items;
+    }
+
+    /** @inheritdoc */
+    public addChildNode(node: FormatNode, at?: FormatNode | number): number {
+        this.content.add(node, at);
+        return this.content.items.length;
+    }
+
+    /** @inheritdoc */
+    public removeChildNode(at: FormatNode | number): FormatNode {
+        return this.content.remove(at);
     }
 
     /** @inheritdoc */
@@ -32,6 +40,11 @@ export class DocBookRootFormatNode extends FormatNode {
         const after = Tokens.DOCBOOK_BOOK_CLOSE_TAG_TOKEN;
 
         return `${before}${this.content.toString()}${after}`;
+    }
+
+    /** @inheritdoc */
+    public clone(): DocBookRootFormatNode {
+        return new DocBookRootFormatNode(this.content.clone());
     }
 }
 
@@ -65,12 +78,19 @@ export class DocBookParagraphFormatNode extends FormatNode {
 
         return `${before}${this.content.toString()}${after}`;
     }
+
+    /** @inheritdoc */
+    public clone(): DocBookParagraphFormatNode {
+        return new DocBookParagraphFormatNode(this.content.clone());
+    }
 }
 
 /**
  * Describes the DocBook heading.
  */
-export class DocBookHeadingFormatNode extends FormatNode {
+export class DocBookHeadingFormatNode extends FormatNode implements NodesContainer, ModifiableNodesContainer {
+    private content: DocBookArrayFormatNode<FormatNode>;
+
     /**
      * Initializes a new instance of this class.
      * @param paragraph The paragraph associated to the heading.
@@ -83,17 +103,35 @@ export class DocBookHeadingFormatNode extends FormatNode {
      * @param id The id to assign to the section. If nothing is passed, a random one will be created.
      */
     constructor(
-        private paragraph: FormatNode,
+        paragraph: FormatNode,
         private title: string,
         private _level: number,
         private id?: string
     ) {
         super();
+
+        this.content = new DocBookArrayFormatNode<FormatNode>([paragraph]);
     }
 
     /** Gets the level. */
     public get level(): number {
         return this.level;
+    }
+
+    /** @inheritdoc */
+    public get childNodes(): Array<FormatNode> {
+        return this.content.items;
+    }
+
+    /** @inheritdoc */
+    public addChildNode(node: FormatNode, at?: FormatNode | number): number {
+        this.content.add(node, at);
+        return this.content.items.length;
+    }
+
+    /** @inheritdoc */
+    public removeChildNode(at: FormatNode | number): FormatNode {
+        return this.content.remove(at);
     }
 
     /** @inheritdoc */
@@ -105,7 +143,17 @@ export class DocBookHeadingFormatNode extends FormatNode {
         const afterTitle = Tokens.DOCBOOK_TITLE_CLOSE_TAG_TOKEN;
         const title = `${beforeTitle}${this.title}${afterTitle}`;
 
-        return `${before}${title}${this.paragraph.toString()}${after}`;
+        return `${before}${title}${this.content.toString()}${after}`;
+    }
+
+    /** @inheritdoc */
+    public clone(): DocBookHeadingFormatNode {
+        return new DocBookHeadingFormatNode(this.paragraph.clone(), `${this.title}`, this._level);
+    }
+
+    // Gets the first item which is the paragraph originally associated to the heading by the grammar.
+    private get paragraph(): FormatNode {
+        return this.content.items[0];
     }
 }
 
@@ -113,17 +161,37 @@ export class DocBookHeadingFormatNode extends FormatNode {
  * Describes the DocBook section.
  * Note: This has no corresponding non-literal in the grammar but it is present for utility.
  */
-export class DocBookSectionFormatNode extends FormatNode {
+export class DocBookSectionFormatNode extends FormatNode implements NodesContainer, ModifiableNodesContainer {
+    private content: DocBookArrayFormatNode<FormatNode>;
+
     /**
      * Initializes a new instance of this class.
      * @param content The content node to assign.
      * @param id The id to assign to the section. If nothing is passed, a random one will be created.
      */
     constructor(
-        private content: FormatNode,
+        content: Array<FormatNode>,
         private id?: string
     ) {
         super();
+
+        this.content = new DocBookArrayFormatNode<FormatNode>(content);
+    }
+
+    /** @inheritdoc */
+    public get childNodes(): Array<FormatNode> {
+        return this.content.items;
+    }
+
+    /** @inheritdoc */
+    public addChildNode(node: FormatNode, at?: FormatNode | number): number {
+        this.content.add(node, at);
+        return this.content.items.length;
+    }
+
+    /** @inheritdoc */
+    public removeChildNode(at: FormatNode | number): FormatNode {
+        return this.content.remove(at);
     }
 
     /** @inheritdoc */
@@ -132,6 +200,11 @@ export class DocBookSectionFormatNode extends FormatNode {
         const after = Tokens.DOCBOOK_SECTION_CLOSE_TAG_TOKEN;
 
         return `${before}${this.content.toString()}${after}`;
+    }
+
+    /** @inheritdoc */
+    public clone(): DocBookSectionFormatNode {
+        return new DocBookSectionFormatNode(this.content.clone().items, this.id);
     }
 }
 
@@ -159,13 +232,22 @@ export class DocBookLiteralFormatNode extends FormatNode {
 
         return this.literal;
     }
+
+    /** @inheritdoc */
+    public clone(): DocBookLiteralFormatNode {
+        if (isFormatNode(this.literal)) {
+            return new DocBookLiteralFormatNode(this.literal.clone());
+        }
+
+        return new DocBookLiteralFormatNode(`${this.literal}`);
+    }
 }
 
 /**
  * Describes an DocBook array.
  * @typedef T The type of items.
  */
-export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode {
+export class DocBookArrayFormatNode<T extends { clone(): T } = FormatNode> extends FormatNode {
     /**
      * Initializes a new instance of this class.
      * @param array The array node to include.
@@ -188,6 +270,27 @@ export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode 
         return this.array;
     }
 
+    /**
+     * Adds an item to the collection.
+     * @param item The item to add.
+     * @param at The (existing) item (in the array) after which adding the new item or its position.
+     *     If not specified, the item will be appended last.
+     */
+    public add(item: T, at?: number | T): number {
+        this.array = addToArray(this.array, item, at);
+        return this.array.length;
+    }
+
+    /**
+     * Removes an item from the collection.
+     * @param at The (existing) item (in the array) to remove.
+     */
+    public remove(at: number | T): T {
+        const itemToRemove = typeof(at) === "number" ? this.array[at] : at;
+        this.array = removeFromArray(this.array, at);
+        return itemToRemove;
+    }
+
     /** @inheritdoc */
     public toString(): string {
         const result = new Array<string>();
@@ -198,6 +301,16 @@ export class DocBookArrayFormatNode<T = FormatNode | string> extends FormatNode 
         }
 
         return result.reduce((a, b) => `${a}${this.separator}${b}`);
+    }
+
+    /** @inheritdoc */
+    public clone(): DocBookArrayFormatNode<T> {
+        const array: Array<T> = [];
+        for (const item of this.array) {
+            array.push(item.clone());
+        }
+
+        return new DocBookArrayFormatNode(array, this.stringifier, this.separator);
     }
 
     private item2String(item: T): string {
