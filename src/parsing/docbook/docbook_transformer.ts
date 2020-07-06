@@ -11,6 +11,9 @@ export type IdGenerator = (input?: unknown) => string;
  * The DocBook transformer.
  */
 export class DocBookTransformer implements Transformer {
+    /** Annotation used to mark synthetic sections. */
+    public static SECTION_SYNTHETIC_ANNOTATION = "Added by transformer";
+
     /**
      * Initializes a new instance of this class.
      * @param idgen The id generator to use.
@@ -20,11 +23,7 @@ export class DocBookTransformer implements Transformer {
     ) {
     }
 
-    /**
-     * Scan the input tree in order to re-arrange the nodes in
-     * the proper way, suitable for output emission.
-     * @param formatTree The input format tree (annotated).
-     */
+    /** @inheritdoc */
     public transform(formatTree: FormatNode): FormatNode {
         let newFormatTree = formatTree;
 
@@ -84,7 +83,12 @@ export class DocBookTransformer implements Transformer {
     }
 
     private createSection(content: Array<FormatNode>): DocBookSectionFormatNode {
-        return new DocBookSectionFormatNode(content, this.generateId());
+        const section = new DocBookSectionFormatNode(content, this.generateId());
+        section.annotations = {
+            description: DocBookTransformer.SECTION_SYNTHETIC_ANNOTATION
+        };
+
+        return section;
     }
 
     private generateId(): string | undefined {

@@ -23,7 +23,7 @@ export class ParsingPipeline {
      *     The formatter is responsible for create every format node which will be
      *     responsible for generating the output format.
      * @param transformer The transformer to use.
-     *     The transformer will take the annotated format tree and rearrange it in
+     *     The transformer will take the (non-annotated) format tree and rearrange it in
      *     the final tree ready to be recursively processed for output generation.
      *     The final tree will have annotations removed.
      * @param logger The logger to use for tracing. When undefined, no logging occurs.
@@ -48,7 +48,7 @@ export class ParsingPipeline {
             this.logger
         ).generate(this._ast);
 
-        // 3. Call the transformer to get from the annotated-format-tree to the format-tree
+        // 3. Call the transformer to get from the format-tree to the annotated-format-tree
         //    which is the structure ready for emitting the final output.
         this._transformedTree = this.transformer.transform(this._generatedTree);
 

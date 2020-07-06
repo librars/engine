@@ -48,11 +48,14 @@ function testNodeIsSimpleSectionWithLeavesOfType<T extends FormatNode>(node: For
     }
 }
 
-test("Root node is rearranged into correct structure - Single paragraph", () => {
+test("Root node is rearranged into correct structure - Single paragraph added to synthetic section", () => {
     const tree = getTransformedTree("Hello world");
     testNode<DocBookRootFormatNode>(tree, 1); // One section
 
     const section = extractChildNode(tree);
+    expect(section.annotations).not.toBeNull();
+    expect(section.annotations?.description).not.toBeNull();
+    expect(section.annotations?.description).toBe(DocBookTransformer.SECTION_SYNTHETIC_ANNOTATION);
     testNodeIsSimpleSectionWithLeavesOfType<DocBookLiteralFormatNode>(section);
 });
 
@@ -61,5 +64,8 @@ test("Root node is rearranged into correct structure - Sequence of paragraphs", 
     testNode<DocBookRootFormatNode>(tree, 1); // One section
 
     const section = extractChildNode(tree);
+    expect(section.annotations).not.toBeNull();
+    expect(section.annotations?.description).not.toBeNull();
+    expect(section.annotations?.description).toBe(DocBookTransformer.SECTION_SYNTHETIC_ANNOTATION);
     testNodeIsSimpleSectionWithLeavesOfType<DocBookLiteralFormatNode>(section, 3); // Many paragraphs
 });

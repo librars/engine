@@ -2,7 +2,8 @@
 
 /** Type for describing annotations to format nodes. */
 export interface AnnotationsObject {
-    indentation?: number;
+    /** A descriptive text providing extra info on the node. */
+    description?: string;
 }
 
 /**
@@ -13,9 +14,7 @@ export abstract class FormatNode implements ClonableNode {
     public abstract toString(): string;
 
     /** Gets the annotations for this node. */
-    public get annotations(): AnnotationsObject {
-        return {};
-    }
+    public annotations: AnnotationsObject | null = null;
 
     /** @inheritdoc */
     public abstract clone(): FormatNode;
