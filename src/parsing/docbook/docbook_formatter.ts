@@ -42,8 +42,8 @@ export class DocBookFormatter implements Formatter {
         );
     }
     /** @inheritdoc */
-    public generateHeadingBlock(title: string, level: number, paragraph: FormatNode): FormatNode {
-        return new DocBookHeadingFormatNode(paragraph, title, level, this.generateId());
+    public generateHeadingBlock(title: string, level: number, paragraph?: FormatNode): FormatNode {
+        return new DocBookHeadingFormatNode(title, level, paragraph, this.generateId());
     }
 
     /** @inheritdoc */

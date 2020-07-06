@@ -66,7 +66,7 @@ paragraph
   Comprises the heading itself followed by a paragraph.
 */
 heading
-  = s:SHARP+ S* t:TEXT S* N+ p:paragraph
+  = s:SHARP+ S* t:TEXT S* (N+ p:paragraph)?
     {
       // Compute the heading level by counting the number of sharps
       const level = s.length;

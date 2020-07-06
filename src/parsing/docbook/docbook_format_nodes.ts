@@ -30,7 +30,7 @@ export class DocBookRootFormatNode extends FormatNode implements NodesContainer,
     }
 
     /** @inheritdoc */
-    public removeChildNode(at: FormatNode | number): FormatNode {
+    public removeChildNode(at: FormatNode | number): FormatNode | null {
         return this.content.remove(at);
     }
 
@@ -87,28 +87,28 @@ export class DocBookParagraphFormatNode extends FormatNode implements NodesConta
  * Describes the DocBook heading.
  */
 export class DocBookHeadingFormatNode extends FormatNode implements NodesContainer, ModifiableNodesContainer {
-    private content: DocBookArrayFormatNode<FormatNode>;
+    private content: DocBookArrayFormatNode<FormatNode> | null;
 
     /**
      * Initializes a new instance of this class.
-     * @param paragraph The paragraph associated to the heading.
      * @param title The title of the heading.
      * @param _level The level of the heading (number of '#').
      *     Examples are:
      *     - '# Title' => level = 1
      *     - '## Title' => level = 2
      *     - etc.
+     * @param paragraph The paragraph associated to the heading.
      * @param id The id to assign to the section. If nothing is passed, a random one will be created.
      */
     constructor(
-        paragraph: FormatNode,
         private title: string,
         private _level: number,
+        paragraph?: FormatNode,
         private id?: string
     ) {
         super();
 
-        this.content = new DocBookArrayFormatNode<FormatNode>([paragraph]);
+        this.content = paragraph ? new DocBookArrayFormatNode<FormatNode>([paragraph]) : null;
     }
 
     /** Gets the level. */
@@ -118,17 +118,25 @@ export class DocBookHeadingFormatNode extends FormatNode implements NodesContain
 
     /** @inheritdoc */
     public get childNodes(): Array<FormatNode> {
-        return this.content.items;
+        return this.content ? this.content.items : [];
     }
 
     /** @inheritdoc */
     public addChildNode(node: FormatNode, at?: FormatNode | number): number {
+        if (!this.content) {
+            this.content = new DocBookArrayFormatNode<FormatNode>([]);
+        }
+
         this.content.add(node, at);
         return this.content.items.length;
     }
 
     /** @inheritdoc */
-    public removeChildNode(at: FormatNode | number): FormatNode {
+    public removeChildNode(at: FormatNode | number): FormatNode | null {
+        if (!this.content) {
+            return null;
+        }
+
         return this.content.remove(at);
     }
 
@@ -140,18 +148,17 @@ export class DocBookHeadingFormatNode extends FormatNode implements NodesContain
         const beforeTitle = Tokens.DOCBOOK_TITLE_OPEN_TAG_TOKEN;
         const afterTitle = Tokens.DOCBOOK_TITLE_CLOSE_TAG_TOKEN;
         const title = `${beforeTitle}${this.title}${afterTitle}`;
+        const content = this.content ? this.content.toString() : "";
 
-        return `${before}${title}${this.content.toString()}${after}`;
+        return `${before}${title}${content}${after}`;
     }
 
     /** @inheritdoc */
     public clone(): DocBookHeadingFormatNode {
-        return new DocBookHeadingFormatNode(this.paragraph.clone(), `${this.title}`, this._level);
-    }
+        const cloned = new DocBookHeadingFormatNode(`${this.title}`, this._level, undefined, this.id);
+        cloned.content = this.content ? this.content.clone() : null;
 
-    // Gets the first item which is the paragraph originally associated to the heading by the grammar.
-    private get paragraph(): FormatNode {
-        return this.content.items[0];
+        return cloned;
     }
 }
 
@@ -188,7 +195,7 @@ export class DocBookSectionFormatNode extends FormatNode implements NodesContain
     }
 
     /** @inheritdoc */
-    public removeChildNode(at: FormatNode | number): FormatNode {
+    public removeChildNode(at: FormatNode | number): FormatNode | null {
         return this.content.remove(at);
     }
 
@@ -298,7 +305,9 @@ export class DocBookArrayFormatNode<T extends { clone(): T } = FormatNode> exten
             result.push(this.item2String(item));
         }
 
-        return result.reduce((a, b) => `${a}${this.separator}${b}`);
+        return result.length > 0
+            ? result.reduce((a, b) => `${a}${this.separator}${b}`)
+            : "";
     }
 
     /** @inheritdoc */

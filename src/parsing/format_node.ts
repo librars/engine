@@ -48,9 +48,9 @@ export interface ModifiableNodesContainer {
     /**
      * Removes a node from the collection of children.
      * @param at The position where to remove the node.
-     * @returns The removed node.
+     * @returns The removed node, null if no node was removed.
      */
-    removeChildNode(at: FormatNode | number): FormatNode;
+    removeChildNode(at: FormatNode | number): FormatNode | null;
 }
 
 /**
@@ -77,5 +77,8 @@ export interface ClonableNode {
  * @param element The element to check.
  */
 export function isFormatNode(element: any): element is FormatNode { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-    return typeof(element) === "object" && "toString" in element;
+    return typeof(element) === "object" &&
+        "toString" in element &&
+        "clone" in element &&
+        "annotations" in element;
 }
