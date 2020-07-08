@@ -50,8 +50,11 @@ export class Generator {
                     return this.formatter.generateRoot(this.generateFormatTreeNode(ast.v));
                 case "HEADING:BLOCK":
                     this.trace("Generating HEADING:BLOCK", ast);
-                    if (isMDNodeValueOfTypeHeading(ast.v)) {
-                        return this.formatter.generateHeadingBlock(ast.v.title, ast.v.level, this.generateFormatTreeNode(ast.v.paragraph));
+                    if (isMDNodeValueOfTypeNode(ast.v) && ast.v.t === "HEADING" && isMDNodeValueOfTypeHeading(ast.v.v)) {
+                        // Expecting type 'HEADING'
+                        return this.formatter.generateHeadingBlock(
+                            ast.v.v.title, ast.v.v.level,
+                            ast.v.v.paragraph ? this.generateFormatTreeNode(ast.v.v.paragraph) : undefined);
                     }
                     throw new Error(`Unexpected value node. Expected 'HEADING', got: '${JSON.stringify(ast.v)}'`);
                 case "PARAGRAPH:BLOCK":

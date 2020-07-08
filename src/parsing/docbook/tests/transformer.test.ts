@@ -8,7 +8,7 @@ import { ParsingPipeline } from "../../parsing_pipeline";
 import { DocBookFormatter } from "../docbook_formatter";
 import { DocBookTransformer } from "../docbook_transformer";
 import { FormatNode, NodesContainer } from "../../format_node";
-import { DocBookRootFormatNode, DocBookSectionFormatNode, DocBookParagraphFormatNode, DocBookLiteralFormatNode } from "../docbook_format_nodes";
+import { DocBookRootFormatNode, DocBookSectionFormatNode, DocBookParagraphFormatNode, DocBookLiteralFormatNode, DocBookHeadingFormatNode } from "../docbook_format_nodes";
 
 const idgen = () => "fakeid";
 const pipeline = new ParsingPipeline(
@@ -59,7 +59,7 @@ test("Root node is rearranged into correct structure - Single paragraph added to
     testNodeIsSimpleSectionWithLeavesOfType<DocBookLiteralFormatNode>(section);
 });
 
-test("Root node is rearranged into correct structure - Sequence of paragraphs", () => {
+test("Root node is rearranged into correct structure - Multiple paragraphs added to synthetic section", () => {
     const tree = getTransformedTree("Hello world one\n\nHello world two\n\nHello world three");
     testNode<DocBookRootFormatNode>(tree, 1); // One section
 
@@ -68,4 +68,32 @@ test("Root node is rearranged into correct structure - Sequence of paragraphs", 
     expect(section.annotations?.description).not.toBeNull();
     expect(section.annotations?.description).toBe(DocBookTransformer.SECTION_SYNTHETIC_ANNOTATION);
     testNodeIsSimpleSectionWithLeavesOfType<DocBookLiteralFormatNode>(section, 3); // Many paragraphs
+});
+
+test("Root node is rearranged into correct structure - Single empty heading does not cause creation of synthetic section", () => {
+    const tree = getTransformedTree("# Title");
+    testNode<DocBookRootFormatNode>(tree, 1); // One heading
+
+    const heading = extractChildNode(tree);
+    expect(heading.annotations).toBeNull();
+    testNode<DocBookHeadingFormatNode>(heading, 0);
+
+    const headingNode = heading as DocBookHeadingFormatNode;
+    expect(headingNode).toBeTruthy();
+    expect(headingNode.level).toBe(1);
+    expect(headingNode.title).toBe("Title");
+});
+
+test("Root node is rearranged into correct structure - Single simple heading does not cause creation of synthetic section", () => {
+    const tree = getTransformedTree("# Title\nHello world");
+    testNode<DocBookRootFormatNode>(tree, 1); // One heading
+
+    const heading = extractChildNode(tree);
+    expect(heading.annotations).toBeNull();
+    testNode<DocBookHeadingFormatNode>(heading, 1);
+
+    const headingNode = heading as DocBookHeadingFormatNode;
+    expect(headingNode).toBeTruthy();
+    expect(headingNode.level).toBe(1);
+    expect(headingNode.title).toBe("Title");
 });

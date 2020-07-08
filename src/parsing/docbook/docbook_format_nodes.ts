@@ -81,17 +81,28 @@ export class DocBookParagraphFormatNode extends FormatNode implements NodesConta
     public clone(): DocBookParagraphFormatNode {
         return new DocBookParagraphFormatNode(this.content.clone());
     }
+
+    /**
+     * Gets a value indicating whether a node is of this specific type.
+     * @param node The node to test.
+     */
+    public static isOfThisType(node: FormatNode): node is DocBookParagraphFormatNode {
+        return node instanceof DocBookParagraphFormatNode;
+    }
 }
 
 /**
  * Describes the DocBook heading.
  */
 export class DocBookHeadingFormatNode extends FormatNode implements NodesContainer, ModifiableNodesContainer {
+    /** Annotation used to mark synthetic sections. */
+    public static PARA_SYNTHETIC_ANNOTATION = "Paragraph created by DocBookHeadingFormatNode";
+
     private content: DocBookArrayFormatNode<FormatNode> | null;
 
     /**
      * Initializes a new instance of this class.
-     * @param title The title of the heading.
+     * @param _title The title of the heading.
      * @param _level The level of the heading (number of '#').
      *     Examples are:
      *     - '# Title' => level = 1
@@ -101,19 +112,32 @@ export class DocBookHeadingFormatNode extends FormatNode implements NodesContain
      * @param id The id to assign to the section. If nothing is passed, a random one will be created.
      */
     constructor(
-        private title: string,
+        private _title: string,
         private _level: number,
         paragraph?: FormatNode,
         private id?: string
     ) {
         super();
 
-        this.content = paragraph ? new DocBookArrayFormatNode<FormatNode>([paragraph]) : null;
+        this.content = null;
+        if (paragraph) {
+            if (DocBookParagraphFormatNode.isOfThisType(paragraph)) {
+                this.content = new DocBookArrayFormatNode<FormatNode>([paragraph]);
+            } else {
+                // We need to manually add the paragraph enclosing content before adding to array
+                this.content = new DocBookArrayFormatNode<FormatNode>([this.createParagraph(paragraph)]);
+            }
+        }
     }
 
     /** Gets the level. */
     public get level(): number {
-        return this.level;
+        return this._level;
+    }
+
+    /** Gets the title of the heading. */
+    public get title(): string {
+        return this._title;
     }
 
     /** @inheritdoc */
@@ -159,6 +183,15 @@ export class DocBookHeadingFormatNode extends FormatNode implements NodesContain
         cloned.content = this.content ? this.content.clone() : null;
 
         return cloned;
+    }
+
+    private createParagraph(content: FormatNode): DocBookParagraphFormatNode {
+        const paragraph = new DocBookParagraphFormatNode(content);
+        paragraph.annotations = {
+            description: DocBookHeadingFormatNode.PARA_SYNTHETIC_ANNOTATION
+        };
+
+        return paragraph;
     }
 }
 

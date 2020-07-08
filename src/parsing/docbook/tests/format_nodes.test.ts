@@ -7,6 +7,8 @@ import {} from "jest";
 import { DocBookRootFormatNode, DocBookArrayFormatNode, DocBookLiteralFormatNode, DocBookParagraphFormatNode, DocBookHeadingFormatNode, DocBookSectionFormatNode } from "../docbook_format_nodes";
 import { FormatNode } from "../../format_node";
 
+// DocBookRootFormatNode
+
 test("DocBookRootFormatNode rendered output", () => {
     const literal = "Hello";
     const output = new DocBookRootFormatNode(
@@ -31,6 +33,8 @@ test("DocBookRootFormatNode rendered output - Multiple children", () => {
     ).toString();
     expect(output).toBe(`<book>${literal1}${separator}${literal2}${separator}${literal3}</book>`);
 });
+
+// DocBookParagraphFormatNode
 
 test("DocBookParagraphFormatNode rendered output", () => {
     const literal = "Hello";
@@ -64,6 +68,8 @@ test("DocBookParagraphFormatNode rendered output - Multiple children", () => {
     expect(output).toBe(`<para>${literal1}${separator}${literal2}${separator}${literal3}</para>`);
 });
 
+// DocBookHeadingFormatNode
+
 test("DocBookHeadingFormatNode (empty) rendered output", () => {
     const title = "Title";
     const level = 1;
@@ -91,6 +97,39 @@ test("DocBookHeadingFormatNode rendered output", () => {
     expect(output).toBe(`<section xml:id="fakeid"><title>${title}</title><para>${literal}</para></section>`);
 });
 
+test("DocBookHeadingFormatNode creation - When no paragraph specified, then childNodes returns empty array", () => {
+    const node = new DocBookHeadingFormatNode("Title", 1);
+
+    expect(node.childNodes).toBeTruthy();
+    expect(node.childNodes.length).toBe(0);
+});
+
+test("DocBookHeadingFormatNode creation - When paragraph is specified but it is not a paragraph node, then a paragraph node wraps it", () => {
+    const node = new DocBookHeadingFormatNode("Title", 1,
+        new DocBookLiteralFormatNode("Literal")
+    );
+
+    expect(node.childNodes).toBeTruthy();
+    expect(node.childNodes.length).toBe(1);
+    expect(node.childNodes[0] instanceof DocBookParagraphFormatNode).toBeTruthy();
+    expect((node.childNodes[0] as DocBookParagraphFormatNode).annotations).toBeTruthy();
+    expect((node.childNodes[0] as DocBookParagraphFormatNode).annotations?.description).toBe(DocBookHeadingFormatNode.PARA_SYNTHETIC_ANNOTATION);
+});
+
+test("DocBookHeadingFormatNode creation - When paragraph is specified and it is a paragraph node, then it is added", () => {
+    const node = new DocBookHeadingFormatNode("Title", 1,
+        new DocBookParagraphFormatNode(
+            new DocBookLiteralFormatNode("Literal")
+        )
+    );
+
+    expect(node.childNodes).toBeTruthy();
+    expect(node.childNodes.length).toBe(1);
+    expect(node.childNodes[0] instanceof DocBookParagraphFormatNode).toBeTruthy();
+});
+
+// DocBookSectionFormatNode
+
 test("DocBookSectionFormatNode rendered output", () => {
     const literal = "Hello";
     const output = new DocBookSectionFormatNode([
@@ -109,11 +148,15 @@ test("DocBookSectionFormatNode rendered output - Multiple children", () => {
     expect(output).toBe(`<section xml:id="fakeid">${literal}</section>`);
 });
 
+// DocBookLiteralFormatNode
+
 test("DocBookLiteralFormatNode rendered output", () => {
     const literal = "Hello";
     const output = new DocBookLiteralFormatNode(literal).toString();
     expect(output).toBe(`${literal}`);
 });
+
+// DocBookArrayFormatNode
 
 test("DocBookArrayFormatNode rendered output", () => {
     const literal = "Hello";
@@ -124,7 +167,6 @@ test("DocBookArrayFormatNode rendered output", () => {
 });
 
 test("DocBookArrayFormatNode rendered output - Empty collection", () => {
-    const literal = "Hello";
     const output = new DocBookArrayFormatNode([]).toString();
     expect(output).toBe("");
 });

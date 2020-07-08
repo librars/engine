@@ -7,13 +7,14 @@ export type MDNodeType =
     "ROOT" |
     "TEXT:INLINE" |
     "PARAGRAPH:BLOCK" |
-    "HEADING:BLOCK";
+    "HEADING:BLOCK" |
+    "HEADING";
 
 /** Represents a custom HEADING node in the grammar. */
 export type Heading = {
     level: number,
     title: string,
-    paragraph: MDNode
+    paragraph: MDNode[] | null
 }
 
 /**
@@ -66,5 +67,5 @@ export function isMDNodeValueOfTypeStringArray(ast: any): ast is Array<string> {
  * @param {MDNodeValue} ast The AST to check.
  */
 export function isMDNodeValueOfTypeHeading(ast: any): ast is Heading { // eslint-disable-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-    return ast.level !== undefined && ast.level !== undefined && ast.paragraph !== undefined;
+    return ast.title !== undefined && ast.level !== undefined;
 }
