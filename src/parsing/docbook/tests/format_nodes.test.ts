@@ -128,6 +128,26 @@ test("DocBookHeadingFormatNode creation - When paragraph is specified and it is 
     expect(node.childNodes[0] instanceof DocBookParagraphFormatNode).toBeTruthy();
 });
 
+test("DocBookHeadingFormatNode - From empty, add children", () => {
+    const node = new DocBookHeadingFormatNode("Title", 1);
+    expect(node.childNodes).toBeTruthy();
+    expect(node.childNodes.length).toBe(0);
+
+    node.addChildNode(
+        new DocBookParagraphFormatNode(
+            new DocBookLiteralFormatNode("Literal1")
+        )
+    );
+    expect(node.childNodes.length).toBe(1);
+
+    node.addChildNode(
+        new DocBookParagraphFormatNode(
+            new DocBookLiteralFormatNode("Literal2")
+        )
+    );
+    expect(node.childNodes.length).toBe(2);
+});
+
 // DocBookSectionFormatNode
 
 test("DocBookSectionFormatNode rendered output", () => {
